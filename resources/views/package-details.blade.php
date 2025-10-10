@@ -3,6 +3,12 @@
 @section('title', $package->title . ' - Ceylon Mirissa')
 @section('description', Str::limit($package->description, 160))
 
+@push('head')
+@if(auth()->check())
+<meta name="user-authenticated" content="true">
+@endif
+@endpush
+
 @section('content')
 <!-- Hero Section with Image Slider -->
 <section class="relative h-screen overflow-hidden">
@@ -326,39 +332,80 @@
                 @endif
             </div>
             
-            <form class="space-y-4" method="POST" action="{{ route('bookings.store') }}">
+            <!-- Error Alert -->
+            <div id="bookingErrorAlert" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                        <div id="bookingErrorList" class="mt-2 text-sm text-red-700">
+                            <!-- Error messages will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Alert -->
+            <div id="bookingSuccessAlert" class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-green-800">Success!</h3>
+                        <div class="mt-2 text-sm text-green-700">
+                            <p id="bookingSuccessMessage">Booking submitted successfully!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="bookingForm" class="space-y-4" method="POST" action="{{ route('bookings.store') }}">
                 @csrf
                 <input type="hidden" name="package_id" value="{{ $package->id }}">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
-                    <input type="text" name="full_name" id="full_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your full name" value="{{ auth()->check() ? auth()->user()->name : '' }}">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Full Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="full_name" id="full_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your full name" value="{{ auth()->check() ? auth()->user()->name : '' }}" required>
+                    <div id="full_name_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                    <input type="email" name="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your email" value="{{ auth()->check() ? auth()->user()->email : '' }}">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Email <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your email" value="{{ auth()->check() ? auth()->user()->email : '' }}" required>
+                    <div id="email_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
                     <input type="tel" name="phone" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Enter your phone number">
+                    <div id="phone_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Travel Date</label>
-                    <input type="date" name="travel_date" id="travel_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Travel Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="travel_date" id="travel_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" required>
+                    <div id="travel_date_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Number of Travelers</label>
-                    <select name="travelers" id="travelers" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Number of Travelers <span class="text-red-500">*</span></label>
+                    <select name="travelers" id="travelers" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" required>
+                        <option value="">Select travelers</option>
                         <option value="1">1 Person</option>
                         <option value="2">2 People</option>
                         <option value="3">3 People</option>
                         <option value="4">4 People</option>
                         <option value="5">5+ People</option>
                     </select>
+                    <div id="travelers_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Special Requirements</label>
                     <textarea name="special_requirements" id="special_requirements" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" rows="2" placeholder="Any special requirements or notes"></textarea>
+                    <div id="special_requirements_error" class="text-red-500 text-xs mt-1 hidden"></div>
                 </div>
             </div>
             
@@ -375,13 +422,15 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Password <span class="text-red-500">*</span></label>
                         <input type="password" name="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Create a password (min 8 characters)" required>
+                        <div id="password_error" class="text-red-500 text-xs mt-1 hidden"></div>
                         <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Confirm Password</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Confirm Password <span class="text-red-500">*</span></label>
                         <input type="password" name="password_confirmation" id="password_confirmation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="Confirm your password" required>
+                        <div id="password_confirmation_error" class="text-red-500 text-xs mt-1 hidden"></div>
                     </div>
                 </div>
             </div>
@@ -411,12 +460,18 @@
                 <button type="button" onclick="closeBookingModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-3 rounded-lg font-medium transition-colors duration-300 text-sm">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-2 px-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 text-sm">
-                    @if(auth()->check())
-                        Book & Pay Now
-                    @else
-                        Create Account & Pay
-                    @endif
+                <button type="submit" id="submitBookingBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-2 px-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 text-sm flex items-center justify-center">
+                    <span id="submitBtnText">
+                        @if(auth()->check())
+                            Book & Pay Now
+                        @else
+                            Create Account & Pay
+                        @endif
+                    </span>
+                    <svg id="submitBtnSpinner" class="hidden animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                 </button>
             </div>
         </form>
@@ -446,15 +501,31 @@ document.addEventListener('DOMContentLoaded', function() {
             crossFade: true
         }
     });
+
+    // Initialize booking form validation
+    initializeBookingForm();
 });
 
 // Booking Modal Functions
 function openBookingModal() {
     document.getElementById('bookingModal').classList.remove('hidden');
+    // Reset form state when opening modal
+    resetFormValidation();
+    
+    // Test error display (remove this after testing)
+    setTimeout(() => {
+        console.log('Testing error display...');
+        showFormErrors({
+            'email': ['Test email error'],
+            'full_name': ['Test name error']
+        });
+    }, 1000);
 }
 
 function closeBookingModal() {
     document.getElementById('bookingModal').classList.add('hidden');
+    // Reset form state when closing modal
+    resetFormValidation();
 }
 
 // Close modal when clicking outside
@@ -463,5 +534,372 @@ document.getElementById('bookingModal').addEventListener('click', function(e) {
         closeBookingModal();
     }
 });
+
+// Form Validation Functions
+function initializeBookingForm() {
+    const form = document.getElementById('bookingForm');
+    if (!form) return;
+
+    // Set minimum date to tomorrow
+    const travelDateInput = document.getElementById('travel_date');
+    if (travelDateInput) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        travelDateInput.min = tomorrow.toISOString().split('T')[0];
+    }
+
+    // Add real-time validation
+    addRealTimeValidation();
+
+    // Handle form submission
+    form.addEventListener('submit', handleFormSubmission);
+}
+
+function addRealTimeValidation() {
+    // Email validation
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            validateEmail(this.value, 'email_error');
+        });
+    }
+
+    // Password validation
+    const passwordInput = document.getElementById('password');
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            validatePassword(this.value, 'password_error');
+        });
+    }
+
+    // Password confirmation validation
+    const passwordConfirmationInput = document.getElementById('password_confirmation');
+    if (passwordConfirmationInput) {
+        passwordConfirmationInput.addEventListener('blur', function() {
+            const password = document.getElementById('password').value;
+            validatePasswordConfirmation(password, this.value, 'password_confirmation_error');
+        });
+    }
+
+    // Travel date validation
+    const travelDateInput = document.getElementById('travel_date');
+    if (travelDateInput) {
+        travelDateInput.addEventListener('change', function() {
+            validateTravelDate(this.value, 'travel_date_error');
+        });
+    }
+
+    // Required field validation
+    const requiredFields = ['full_name', 'travelers'];
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('blur', function() {
+                validateRequiredField(this.value, fieldName + '_error', this.getAttribute('placeholder') || 'This field');
+            });
+        }
+    });
+}
+
+function validateEmail(email, errorElementId) {
+    const errorElement = document.getElementById(errorElementId);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email) {
+        showFieldError(errorElement, 'Email is required');
+        return false;
+    } else if (!emailRegex.test(email)) {
+        showFieldError(errorElement, 'Please enter a valid email address');
+        return false;
+    } else {
+        hideFieldError(errorElement);
+        return true;
+    }
+}
+
+function validatePassword(password, errorElementId) {
+    const errorElement = document.getElementById(errorElementId);
+    
+    if (!password) {
+        showFieldError(errorElement, 'Password is required');
+        return false;
+    } else if (password.length < 8) {
+        showFieldError(errorElement, 'Password must be at least 8 characters long');
+        return false;
+    } else {
+        hideFieldError(errorElement);
+        return true;
+    }
+}
+
+function validatePasswordConfirmation(password, confirmation, errorElementId) {
+    const errorElement = document.getElementById(errorElementId);
+    
+    if (!confirmation) {
+        showFieldError(errorElement, 'Please confirm your password');
+        return false;
+    } else if (password !== confirmation) {
+        showFieldError(errorElement, 'Passwords do not match');
+        return false;
+    } else {
+        hideFieldError(errorElement);
+        return true;
+    }
+}
+
+function validateTravelDate(date, errorElementId) {
+    const errorElement = document.getElementById(errorElementId);
+    const today = new Date();
+    const selectedDate = new Date(date);
+    
+    if (!date) {
+        showFieldError(errorElement, 'Travel date is required');
+        return false;
+    } else if (selectedDate <= today) {
+        showFieldError(errorElement, 'Travel date must be in the future');
+        return false;
+    } else {
+        hideFieldError(errorElement);
+        return true;
+    }
+}
+
+function validateRequiredField(value, errorElementId, fieldName) {
+    const errorElement = document.getElementById(errorElementId);
+    
+    if (!value || value.trim() === '') {
+        showFieldError(errorElement, `${fieldName} is required`);
+        return false;
+    } else {
+        hideFieldError(errorElement);
+        return true;
+    }
+}
+
+function showFieldError(errorElement, message) {
+    console.log('showFieldError called:', errorElement, message); // Debug log
+    
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+        
+        // Find the associated input field
+        const fieldId = errorElement.id.replace('_error', '');
+        const inputField = document.getElementById(fieldId);
+        console.log('Found input field:', fieldId, inputField); // Debug log
+        
+        if (inputField) {
+            inputField.classList.add('border-red-500');
+            inputField.classList.remove('border-gray-300');
+        }
+    }
+}
+
+function hideFieldError(errorElement) {
+    if (errorElement) {
+        errorElement.classList.add('hidden');
+        
+        // Find the associated input field
+        const fieldId = errorElement.id.replace('_error', '');
+        const inputField = document.getElementById(fieldId);
+        
+        if (inputField) {
+            inputField.classList.remove('border-red-500');
+            inputField.classList.add('border-gray-300');
+        }
+    }
+}
+
+function resetFormValidation() {
+    // Hide all error messages
+    const errorElements = document.querySelectorAll('[id$="_error"]');
+    errorElements.forEach(element => {
+        element.classList.add('hidden');
+    });
+
+    // Reset input field styling
+    const inputs = document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm textarea');
+    inputs.forEach(input => {
+        input.classList.remove('border-red-500');
+        input.classList.add('border-gray-300');
+    });
+
+    // Hide alerts
+    document.getElementById('bookingErrorAlert').classList.add('hidden');
+    document.getElementById('bookingSuccessAlert').classList.add('hidden');
+}
+
+function showFormErrors(errors) {
+    console.log('showFormErrors called with:', errors); // Debug log
+    
+    // Hide success alert first
+    document.getElementById('bookingSuccessAlert').classList.add('hidden');
+    
+    const errorAlert = document.getElementById('bookingErrorAlert');
+    const errorList = document.getElementById('bookingErrorList');
+    
+    if (Object.keys(errors).length > 0) {
+        console.log('Showing error alert'); // Debug log
+        errorAlert.classList.remove('hidden');
+        
+        let errorHtml = '<ul class="list-disc list-inside space-y-1">';
+        Object.keys(errors).forEach(field => {
+            errors[field].forEach(error => {
+                errorHtml += `<li>${error}</li>`;
+                // Show field-specific errors
+                const fieldErrorElement = document.getElementById(field + '_error');
+                console.log(`Looking for error element: ${field}_error`, fieldErrorElement); // Debug log
+                if (fieldErrorElement) {
+                    showFieldError(fieldErrorElement, error);
+                }
+            });
+        });
+        errorHtml += '</ul>';
+        
+        errorList.innerHTML = errorHtml;
+    }
+}
+
+function showFormSuccess(message) {
+    resetFormValidation();
+    
+    const successAlert = document.getElementById('bookingSuccessAlert');
+    const successMessage = document.getElementById('bookingSuccessMessage');
+    
+    successAlert.classList.remove('hidden');
+    successMessage.textContent = message;
+}
+
+function handleFormSubmission(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitButton = document.getElementById('submitBookingBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitBtnText.textContent = 'Processing...';
+    submitBtnSpinner.classList.remove('hidden');
+    
+    // Reset any previous validation errors
+    resetFormValidation();
+    
+    // Perform client-side validation
+    if (!performClientSideValidation()) {
+        resetSubmitButton();
+        return;
+    }
+    
+    // Submit form via AJAX
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        console.log('Response headers:', response.headers); // Debug log
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data); // Debug log
+        if (data.success) {
+            showFormSuccess(data.message);
+            // Redirect after a short delay
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
+        } else {
+            console.log('Validation failed:', data.errors); // Debug log
+            if (data.errors) {
+                showFormErrors(data.errors);
+            } else {
+                showFormErrors({ general: [data.message] });
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showFormErrors({ general: ['An unexpected error occurred. Please try again.'] });
+    })
+    .finally(() => {
+        resetSubmitButton();
+    });
+}
+
+function resetSubmitButton() {
+    const submitButton = document.getElementById('submitBookingBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+    
+    submitButton.disabled = false;
+    submitBtnSpinner.classList.add('hidden');
+    
+    // Restore original text based on authentication status
+    if (document.querySelector('meta[name="user-authenticated"]')) {
+        submitBtnText.textContent = 'Book & Pay Now';
+    } else {
+        submitBtnText.textContent = 'Create Account & Pay';
+    }
+}
+
+function performClientSideValidation() {
+    let isValid = true;
+    
+    // Validate required fields
+    const requiredFields = [
+        { id: 'full_name', name: 'Full Name' },
+        { id: 'email', name: 'Email' },
+        { id: 'travel_date', name: 'Travel Date' },
+        { id: 'travelers', name: 'Number of Travelers' }
+    ];
+    
+    requiredFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element && !validateRequiredField(element.value, field.id + '_error', field.name)) {
+            isValid = false;
+        }
+    });
+    
+    // Validate email format
+    const emailField = document.getElementById('email');
+    if (emailField && !validateEmail(emailField.value, 'email_error')) {
+        isValid = false;
+    }
+    
+    // Validate travel date
+    const travelDateField = document.getElementById('travel_date');
+    if (travelDateField && !validateTravelDate(travelDateField.value, 'travel_date_error')) {
+        isValid = false;
+    }
+    
+    // Validate password fields for guest users
+    if (!document.querySelector('meta[name="user-authenticated"]')) {
+        const passwordField = document.getElementById('password');
+        const passwordConfirmationField = document.getElementById('password_confirmation');
+        
+        if (passwordField && !validatePassword(passwordField.value, 'password_error')) {
+            isValid = false;
+        }
+        
+        if (passwordConfirmationField && !validatePasswordConfirmation(
+            passwordField.value, 
+            passwordConfirmationField.value, 
+            'password_confirmation_error'
+        )) {
+            isValid = false;
+        }
+    }
+    
+    return isValid;
+}
+
 </script>
 @endsection

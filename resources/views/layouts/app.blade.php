@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Ceylon Mirissa - Discover Paradise')</title>
     <meta name="description" content="@yield('description', 'Experience the magic of Sri Lanka with Ceylon Mirissa. Discover ancient temples, pristine beaches, and unforgettable adventures.')">
+    
+    @stack('head')
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -186,15 +189,14 @@
 
         /* Navbar Styles */
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             z-index: 9999 !important;
         }
 
         .navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
+            background: #ffffff;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         }
 
@@ -225,10 +227,100 @@
         .mobile-menu {
             transform: translateX(100%);
             transition: transform 0.3s ease;
+            background: #ffffff;
+            border-left: 1px solid #e5e7eb;
         }
 
         .mobile-menu.active {
             transform: translateX(0);
+        }
+
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 35;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Mobile Menu */
+        @media (max-width: 640px) {
+            .mobile-menu {
+                width: 100vw;
+                right: 0;
+                top: 0;
+                height: 100vh;
+            }
+            
+            .navbar {
+                height: 64px;
+            }
+            
+            .navbar .container {
+                height: 64px;
+            }
+            
+            .navbar .flex {
+                height: 64px;
+            }
+            
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .logo-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .navbar h1 {
+                font-size: 1.25rem;
+            }
+            
+            .navbar p {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .mobile-menu {
+                width: 320px;
+            }
+        }
+
+        /* Mobile Menu Scroll */
+        .mobile-menu .overflow-y-auto {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+
+        .mobile-menu .overflow-y-auto::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .mobile-menu .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .mobile-menu .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .mobile-menu .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .logo-icon {
@@ -285,7 +377,7 @@
     <!-- Navigation -->
     <nav class="navbar fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between h-20">
+            <div class="flex items-center justify-between h-20 lg:h-20 md:h-16 sm:h-16">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3">
                     <div class="logo-icon w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
@@ -411,9 +503,22 @@
                 </button>
             </div>
 
+            <!-- Mobile Menu Overlay -->
+            <div class="mobile-menu-overlay lg:hidden"></div>
+            
             <!-- Mobile Menu -->
-            <div class="mobile-menu fixed top-20 right-0 w-80 h-full bg-white shadow-2xl z-40 lg:hidden">
-                <div class="p-6 space-y-4">
+            <div class="mobile-menu fixed top-20 right-0 w-80 h-full shadow-2xl z-40 lg:hidden">
+                <!-- Mobile Menu Header -->
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-semibold text-gray-900">Menu</h3>
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-4 overflow-y-auto h-full pb-20">
                     <!-- Mobile Search Bar -->
                     <div class="mb-6">
                         <div class="relative flex">
@@ -757,16 +862,32 @@
         // Mobile menu toggle
         function toggleMobileMenu() {
             const mobileMenu = document.querySelector('.mobile-menu');
+            const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+            
             mobileMenu.classList.toggle('active');
+            mobileMenuOverlay.classList.toggle('active');
         }
 
-        // Close mobile menu when clicking outside
+        // Close mobile menu when clicking overlay
         document.addEventListener('click', function(event) {
             const mobileMenu = document.querySelector('.mobile-menu');
             const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
 
-            if (!mobileMenu.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+            if (event.target === mobileMenuOverlay) {
                 mobileMenu.classList.remove('active');
+                mobileMenuOverlay.classList.remove('active');
+            }
+        });
+
+        // Close mobile menu on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const mobileMenu = document.querySelector('.mobile-menu');
+                const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+                
+                mobileMenu.classList.remove('active');
+                mobileMenuOverlay.classList.remove('active');
             }
         });
 
