@@ -243,7 +243,7 @@ class PayHereController extends Controller
      */
     public function showSuccess($bookingId)
     {
-        $booking = Booking::with(['package', 'user'])->findOrFail($bookingId);
+        $booking = Booking::with(['package', 'package.media', 'user'])->findOrFail($bookingId);
         return view('payhere.success', compact('booking'));
     }
 
@@ -252,7 +252,7 @@ class PayHereController extends Controller
      */
     public function showFailed($bookingId)
     {
-        $booking = Booking::with(['package', 'user'])->findOrFail($bookingId);
+        $booking = Booking::with(['package', 'package.media', 'user'])->findOrFail($bookingId);
         return view('payhere.failed', compact('booking'));
     }
 }
