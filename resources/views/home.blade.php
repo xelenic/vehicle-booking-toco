@@ -824,6 +824,8 @@
                                 <label for="paxCount" class="block text-sm font-semibold text-gray-700 mb-2">Number of Passengers</label>
                                 <input type="number" id="paxCount" name="paxCount" min="1" max="20" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
                                 <p class="text-xs text-gray-500 mt-1">Maximum capacity will be updated based on selected vehicle</p>
+                                <div id="vehicleInfo" class="text-sm text-gray-500 mt-1">Please select a vehicle to see passenger capacity</div>
+                                <div id="paxError" class="hidden text-sm text-red-600 mt-1"></div>
                             </div>
                         </div>
                         
@@ -842,21 +844,66 @@
                     <div id="mapContainer" class="relative">
                         <div id="map" style="height: 500px; width: 100%; border-radius: 12px; overflow: hidden;"></div>
                         
-                        <!-- Map Legend -->
-                        <div class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 z-10">
-                            <h4 class="font-semibold text-gray-900 mb-2 text-sm">Map Legend</h4>
-                            <div class="space-y-1 text-xs">
+                        <!-- Enhanced Map Legend -->
+                        <div class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 z-10 border border-gray-200">
+                            <h4 class="font-semibold text-gray-900 mb-3 text-sm flex items-center">
+                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                                Map Legend
+                            </h4>
+                            <div class="space-y-2 text-xs">
                                 <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                    <span>Pickup Point</span>
+                                    <div class="w-4 h-4 bg-red-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-map-marker-alt text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Pickup Point</span>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                    <span>Destination</span>
+                                    <div class="w-4 h-4 bg-blue-500 rounded-lg mr-2 flex items-center justify-center">
+                                        <i class="fas fa-home text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Destination</span>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
-                                    <span>Available Locations</span>
+                                    <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-circle text-white text-xs"></i>
+                                </div>
+                                    <span class="font-medium">Route Waypoint</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
+                                    <span class="font-medium">Available Locations</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-1 bg-blue-500 mr-2" style="border-radius: 2px;"></div>
+                                    <span class="font-medium">Primary Route</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-1 bg-green-500 mr-2" style="border-radius: 2px; border: 1px dashed #34a853;"></div>
+                                    <span class="font-medium">Alternative Routes</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-3 bg-white border border-gray-200 rounded mr-2 flex items-center justify-center">
+                                        <i class="fas fa-car text-blue-500 text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Route Info</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-purple-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-camera text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Tourist Attractions</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-mountain text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Mountain Peaks</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-suitcase text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Travel Hubs</span>
                                 </div>
                             </div>
                         </div>
@@ -1124,7 +1171,80 @@
 </section>
 @endsection
 
+@push('styles')
+<style>
+    /* Custom marker animations */
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .google-marker-pickup,
+    .google-marker-destination,
+    .custom-marker-waypoint {
+        animation: bounce 1s ease-in-out;
+    }
+    
+    /* Google Maps style route lines */
+    .route-line-primary {
+        filter: drop-shadow(0 2px 4px rgba(66, 133, 244, 0.3));
+    }
+    
+    .route-line-alt-0,
+    .route-line-alt-1,
+    .route-line-alt-2 {
+        filter: drop-shadow(0 1px 2px rgba(52, 168, 83, 0.2));
+    }
+    
+    /* Route info box styling */
+    .route-info-box {
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    /* Google Maps style marker shadows */
+    .google-marker-pickup,
+    .google-marker-destination {
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    }
+    
+    /* Route line animations */
+    .leaflet-interactive {
+        transition: all 0.3s ease;
+    }
+    
+    /* Enhanced map container */
+    #map {
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Route info styling */
+    #routeInfo {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Enhanced form styling */
+    .form-select:focus,
+    .form-input:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+    }
+</style>
+@endpush
+
 @push('scripts')
+<!-- Google Maps JavaScript API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key', 'YOUR_API_KEY') }}&libraries=places,directions&callback=initGoogleMap" async defer></script>
+
 <script>
     // Map locations with coordinates from database
     const locations = @json($locationsForMap);
@@ -1136,162 +1256,550 @@
     });
     
     let map;
-    let routeLayer;
+    let directionsService;
+    let directionsRenderer;
+    let markers = [];
     
-    // Initialize map
-    function initializeMap() {
+    // Initialize Google Map
+    function initGoogleMap() {
         try {
-            map = L.map('map').setView([7.8731, 80.7718], 7); // Center on Sri Lanka
+            // Initialize the map centered on Sri Lanka with satellite view
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 7.8731, lng: 80.7718 },
+                zoom: 7,
+                mapTypeId: google.maps.MapTypeId.HYBRID, // Satellite view with labels
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_RIGHT,
+                },
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'on' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'on' }]
+                    }
+                ]
+            });
             
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+            // Initialize directions service and renderer
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#4285f4',
+                    strokeWeight: 6,
+                    strokeOpacity: 0.9
+                }
+            });
+            directionsRenderer.setMap(map);
+            
+            // Add tourist attraction markers
+            addTouristAttractions();
             
             // Add markers for all locations from database
             if (locations && locations.length > 0) {
                 locations.forEach((location, index) => {
-                    // Convert string coordinates to numbers
                     const lat = parseFloat(location.latitude);
                     const lng = parseFloat(location.longitude);
-                    const coords = [lat, lng];
-                    const marker = L.marker(coords).addTo(map);
                     
-                    // Create popup content with location details
-                    let popupContent = `<div class="text-center">
-                        <h3 class="font-semibold text-gray-900 mb-2">${location.name}</h3>`;
+                    const marker = new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        title: location.name,
+                        icon: {
+                            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" fill="#6b7280" stroke="white" stroke-width="2"/>
+                                    <circle cx="12" cy="12" r="4" fill="white"/>
+                                </svg>
+                            `),
+                            scaledSize: new google.maps.Size(24, 24),
+                            anchor: new google.maps.Point(12, 12)
+                        }
+                    });
+                    
+                    // Create info window content
+                    let infoContent = `
+                        <div class="text-center min-w-[200px]">
+                            <h3 class="font-semibold text-gray-900 mb-2">${location.name}</h3>
+                    `;
                     
                     if (location.description) {
-                        popupContent += `<p class="text-sm text-gray-600 mb-2">${location.description}</p>`;
+                        infoContent += `<p class="text-sm text-gray-600 mb-2">${location.description}</p>`;
                     }
                     
-                    popupContent += `<p class="text-xs text-gray-500 mb-3">Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
-                        <div class="flex gap-2">
-                            <button onclick="selectLocation('${location.id}', 'pickup')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">Pickup</button>
-                            <button onclick="selectLocation('${location.id}', 'destination')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">Destination</button>
+                    infoContent += `
+                            <p class="text-xs text-gray-500 mb-3">Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="selectGoogleLocation('${location.id}', 'pickup')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors">Pickup</button>
+                                <button onclick="selectGoogleLocation('${location.id}', 'destination')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-colors">Destination</button>
                         </div>
-                        </div>`;
+                        </div>
+                    `;
                     
-                    marker.bindPopup(popupContent);
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: infoContent
+                    });
+                    
+                    marker.addListener('click', () => {
+                        infoWindow.open(map, marker);
+                    });
+                    
+                    markers.push(marker);
                 });
             } else {
                 console.warn('No locations data available');
             }
             
-            routeLayer = L.layerGroup().addTo(map);
         } catch (error) {
-            console.error('Error initializing map:', error);
-            // Show error message to user
+            console.error('Error initializing Google Map:', error);
             const mapContainer = document.getElementById('map');
             if (mapContainer) {
-                mapContainer.innerHTML = '<div class="flex items-center justify-center h-full bg-gray-100 rounded-lg"><p class="text-gray-500">Map failed to load. Please refresh the page.</p></div>';
+                mapContainer.innerHTML = '<div class="flex items-center justify-center h-full bg-gray-100 rounded-lg"><p class="text-gray-500">Google Maps failed to load. Please check your API key.</p></div>';
             }
         }
     }
     
-    // Calculate distance between two points
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Earth's radius in kilometers
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
+    // Add tourist attractions based on the image
+    function addTouristAttractions() {
+        const attractions = [
+            {
+                name: "Hikkaduwa Beach",
+                position: { lat: 6.1444, lng: 80.0969 },
+                type: "beach",
+                icon: "camera",
+                color: "#8b5cf6"
+            },
+            {
+                name: "Goyambokka Beach",
+                position: { lat: 5.9494, lng: 80.4561 },
+                type: "beach",
+                icon: "camera",
+                color: "#8b5cf6"
+            },
+            {
+                name: "Udawalawe National Park Safari",
+                position: { lat: 6.4333, lng: 80.8833 },
+                type: "wildlife",
+                icon: "camera",
+                color: "#8b5cf6"
+            },
+            {
+                name: "Pidurutalagala",
+                position: { lat: 7.0000, lng: 80.7667 },
+                type: "mountain",
+                icon: "mountain",
+                color: "#10b981"
+            },
+            {
+                name: "Ella",
+                position: { lat: 6.8667, lng: 81.0333 },
+                type: "town",
+                icon: "suitcase",
+                color: "#3b82f6"
+            },
+            {
+                name: "Bandarawela",
+                position: { lat: 6.8333, lng: 80.9833 },
+                type: "town",
+                icon: "suitcase",
+                color: "#3b82f6"
+            },
+            {
+                name: "Yala National Park",
+                position: { lat: 6.3728, lng: 81.5242 },
+                type: "wildlife",
+                icon: "camera",
+                color: "#8b5cf6"
+            },
+            {
+                name: "Sinharaja Forest Reserve",
+                position: { lat: 6.4167, lng: 80.5000 },
+                type: "forest",
+                icon: "camera",
+                color: "#8b5cf6"
+            },
+            {
+                name: "Sripada Peak Wilderness Sanctuary",
+                position: { lat: 6.8167, lng: 80.4833 },
+                type: "mountain",
+                icon: "mountain",
+                color: "#10b981"
+            }
+        ];
+        
+        attractions.forEach(attraction => {
+            let iconSvg = '';
+            
+            switch(attraction.icon) {
+                case 'camera':
+                    iconSvg = `
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="14" fill="${attraction.color}" stroke="white" stroke-width="3"/>
+                            <path d="M12 10h8l2 4H10l2-4z" fill="white"/>
+                            <circle cx="16" cy="18" r="3" fill="white"/>
+                        </svg>
+                    `;
+                    break;
+                case 'mountain':
+                    iconSvg = `
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="14" fill="${attraction.color}" stroke="white" stroke-width="3"/>
+                            <path d="M8 20l8-8 8 8H8z" fill="white"/>
+                        </svg>
+                    `;
+                    break;
+                case 'suitcase':
+                    iconSvg = `
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="14" fill="${attraction.color}" stroke="white" stroke-width="3"/>
+                            <rect x="10" y="12" width="12" height="8" rx="2" fill="white"/>
+                            <path d="M14 12V8h4v4" stroke="white" stroke-width="1"/>
+                        </svg>
+                    `;
+                    break;
+            }
+            
+            const marker = new google.maps.Marker({
+                position: attraction.position,
+                map: map,
+                title: attraction.name,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(iconSvg),
+                    scaledSize: new google.maps.Size(32, 32),
+                    anchor: new google.maps.Point(16, 16)
+                }
+            });
+            
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div class="text-center min-w-[200px]">
+                        <h3 class="font-semibold text-gray-900 mb-2">${attraction.name}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${attraction.type.charAt(0).toUpperCase() + attraction.type.slice(1)} Attraction</p>
+                        <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            <div><strong>Type:</strong> Tourist Attraction</div>
+                            <div><strong>Coordinates:</strong> ${attraction.position.lat.toFixed(4)}, ${attraction.position.lng.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `
+            });
+            
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+            
+            markers.push(marker);
+        });
     }
     
-    // Calculate travel time
-    function calculateTravelTime(distance) {
-        const averageSpeed = 50; // km/h average speed in Sri Lanka
-        return Math.round(distance / averageSpeed * 60); // in minutes
+    // Display primary route
+    function displayRoute(response, pickupLocation, destinationLocation, travelMode) {
+        hideRouteLoading();
+        
+        // Display the primary route
+        directionsRenderer.setDirections(response);
+        
+        // Update route information
+        const route = response.routes[0];
+        const leg = route.legs[0];
+        
+        const distanceInfo = document.getElementById('distanceInfo');
+        const timeInfo = document.getElementById('timeInfo');
+        const routeDetails = document.getElementById('routeDetails');
+        
+        if (distanceInfo) {
+            distanceInfo.textContent = leg.distance.text;
+        }
+        if (timeInfo) {
+            timeInfo.textContent = leg.duration.text;
+        }
+        
+        // Enhanced route details
+        const routeDetailsHtml = `
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
+                    <span><strong>From:</strong> ${pickupLocation.name}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-home text-blue-500 mr-2"></i>
+                    <span><strong>To:</strong> ${destinationLocation.name}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-route text-yellow-500 mr-2"></i>
+                    <span><strong>Route Type:</strong> ${travelMode.name} Route</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-tachometer-alt text-purple-500 mr-2"></i>
+                    <span><strong>Distance:</strong> ${leg.distance.text}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-clock text-green-500 mr-2"></i>
+                    <span><strong>Duration:</strong> ${leg.duration.text}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-map text-gray-500 mr-2"></i>
+                    <span><strong>Map View:</strong> Satellite Hybrid</span>
+                </div>
+            </div>
+        `;
+        if (routeDetails) {
+            routeDetails.innerHTML = routeDetailsHtml;
+        }
+        
+        document.getElementById('routeInfo').classList.remove('hidden');
+        
+        // Show success notification
+        showRouteNotification(`${travelMode.name} route calculated successfully!`, 'success');
     }
     
-    // Draw route between two locations
-    function drawRoute(pickupLocationId, destinationLocationId) {
+    // Display alternative routes
+    function displayAlternativeRoutes(allRoutes, pickupLocation, destinationLocation) {
+        // Add alternative route markers
+        allRoutes.forEach((routeData, index) => {
+            if (routeData.travelMode.mode !== google.maps.TravelMode.DRIVING || routeData.routeIndex > 0) {
+                const route = routeData.route;
+                const leg = route.legs[0];
+                
+                // Calculate midpoint for info box
+                const startLat = leg.start_location.lat();
+                const startLng = leg.start_location.lng();
+                const endLat = leg.end_location.lat();
+                const endLng = leg.end_location.lng();
+                const midLat = (startLat + endLat) / 2;
+                const midLng = (startLng + endLng) / 2;
+                
+                // Create info box for alternative route
+                const infoBoxIcon = {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="120" height="60" rx="8" fill="white" stroke="${routeData.travelMode.color}" stroke-width="2"/>
+                            <circle cx="20" cy="20" r="8" fill="${routeData.travelMode.color}"/>
+                            <text x="35" y="25" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${leg.duration.text}</text>
+                            <text x="20" y="45" font-family="Arial" font-size="10" fill="#666">${leg.distance.text}</text>
+                            <text x="70" y="45" font-family="Arial" font-size="10" fill="#666">${routeData.travelMode.name}</text>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(120, 60),
+                    anchor: new google.maps.Point(60, 30)
+                };
+                
+                const infoMarker = new google.maps.Marker({
+                    position: { lat: midLat, lng: midLng },
+                    map: map,
+                    icon: infoBoxIcon,
+                    title: `${routeData.travelMode.name} Route: ${leg.duration.text}`
+                });
+                
+                // Add click handler to show route details
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="text-center min-w-[200px]">
+                            <h4 class="font-semibold text-gray-900 mb-2">${routeData.travelMode.name} Route</h4>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Travel Time:</span>
+                                    <span class="font-medium">${leg.duration.text}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Distance:</span>
+                                    <span class="font-medium">${leg.distance.text}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Route Type:</span>
+                                    <span class="font-medium">${routeData.travelMode.name}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                infoMarker.addListener('click', () => {
+                    infoWindow.open(map, infoMarker);
+                });
+            }
+        });
+    }
+    
+    // Draw route using Google Maps Directions API
+    function drawGoogleRoute(pickupLocationId, destinationLocationId) {
         try {
-            routeLayer.clearLayers();
+            // Show loading state
+            showRouteLoading();
             
             const pickupLocation = locationLookup[pickupLocationId];
             const destinationLocation = locationLookup[destinationLocationId];
             
             if (!pickupLocation || !destinationLocation) {
                 console.warn('Location not found in lookup');
+                hideRouteLoading();
                 return;
             }
             
-            // Convert string coordinates to numbers
-            const pickupCoords = [parseFloat(pickupLocation.latitude), parseFloat(pickupLocation.longitude)];
-            const destinationCoords = [parseFloat(destinationLocation.latitude), parseFloat(destinationLocation.longitude)];
-        
-        // Add custom markers with icons
-        const pickupIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">P</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-        
-        const destinationIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">D</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-        
-        const pickupMarker = L.marker(pickupCoords, { icon: pickupIcon }).addTo(routeLayer);
-        const destinationMarker = L.marker(destinationCoords, { icon: destinationIcon }).addTo(routeLayer);
-        
-        // Add popups to route markers
-        pickupMarker.bindPopup(`
-            <div class="text-center">
-                <h3 class="font-semibold text-blue-600 mb-1">Pickup Point</h3>
-                <h4 class="font-medium text-gray-900">${pickupLocation.name}</h4>
-                ${pickupLocation.description ? `<p class="text-sm text-gray-600 mt-1">${pickupLocation.description}</p>` : ''}
+            // Convert coordinates to Google Maps format
+            const pickupCoords = { lat: parseFloat(pickupLocation.latitude), lng: parseFloat(pickupLocation.longitude) };
+            const destinationCoords = { lat: parseFloat(destinationLocation.latitude), lng: parseFloat(destinationLocation.longitude) };
+            
+            // Create custom markers for pickup and destination
+            const pickupMarker = new google.maps.Marker({
+                position: pickupCoords,
+                map: map,
+                title: `Pickup: ${pickupLocation.name}`,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="14" fill="#ef4444" stroke="white" stroke-width="3"/>
+                            <path d="M16 8L20 16H16V24L12 16H16V8Z" fill="white"/>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(32, 32),
+                    anchor: new google.maps.Point(16, 16)
+                }
+            });
+            
+            const destinationMarker = new google.maps.Marker({
+                position: destinationCoords,
+                map: map,
+                title: `Destination: ${destinationLocation.name}`,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="8" width="24" height="16" rx="2" fill="#3b82f6" stroke="white" stroke-width="3"/>
+                            <path d="M12 16H20M16 12V20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(32, 32),
+                    anchor: new google.maps.Point(16, 16)
+                }
+            });
+            
+            // Add info windows for markers
+            const pickupInfoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div class="text-center min-w-[200px]">
+                        <div class="flex items-center justify-center mb-2">
+                            <div class="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                                <i class="fas fa-map-marker-alt text-sm"></i>
             </div>
-        `);
-        
-        destinationMarker.bindPopup(`
-            <div class="text-center">
-                <h3 class="font-semibold text-green-600 mb-1">Destination</h3>
-                <h4 class="font-medium text-gray-900">${destinationLocation.name}</h4>
-                ${destinationLocation.description ? `<p class="text-sm text-gray-600 mt-1">${destinationLocation.description}</p>` : ''}
+                            <h3 class="font-semibold text-red-600">Pickup Point</h3>
+                        </div>
+                        <h4 class="font-medium text-gray-900 mb-2">${pickupLocation.name}</h4>
+                        ${pickupLocation.description ? `<p class="text-sm text-gray-600 mb-2">${pickupLocation.description}</p>` : ''}
+                        <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            <div><strong>Coordinates:</strong> ${pickupCoords.lat.toFixed(4)}, ${pickupCoords.lng.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `
+            });
+            
+            const destinationInfoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div class="text-center min-w-[200px]">
+                        <div class="flex items-center justify-center mb-2">
+                            <div class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                                <i class="fas fa-home text-sm"></i>
             </div>
-        `);
-        
-        // Draw route line
-        const routeLine = L.polyline([pickupCoords, destinationCoords], {
-            color: '#f59e0b',
-            weight: 4,
-            opacity: 0.8,
-            dashArray: '10, 10'
-        }).addTo(routeLayer);
-        
-        // Calculate and display route info
-        const distance = calculateDistance(pickupCoords[0], pickupCoords[1], destinationCoords[0], destinationCoords[1]);
-        const time = calculateTravelTime(distance);
-        
-        document.getElementById('distanceInfo').textContent = `${distance.toFixed(1)} km`;
-        document.getElementById('timeInfo').textContent = `${time} minutes`;
-        
-        // Enhanced route details
-        const routeDetails = `
-            <div class="space-y-1">
-                <div><strong>From:</strong> ${pickupLocation.name}</div>
-                <div><strong>To:</strong> ${destinationLocation.name}</div>
-                <div><strong>Route Type:</strong> Direct (as the crow flies)</div>
-                <div><strong>Average Speed:</strong> 50 km/h (Sri Lankan roads)</div>
-            </div>
-        `;
-        document.getElementById('routeDetails').innerHTML = routeDetails;
-        
-        document.getElementById('routeInfo').classList.remove('hidden');
-        
-        // Fit map to show both locations
-        const group = new L.featureGroup([pickupMarker, destinationMarker]);
-        map.fitBounds(group.getBounds().pad(0.1));
+                            <h3 class="font-semibold text-blue-600">Destination</h3>
+                        </div>
+                        <h4 class="font-medium text-gray-900 mb-2">${destinationLocation.name}</h4>
+                        ${destinationLocation.description ? `<p class="text-sm text-gray-600 mb-2">${destinationLocation.description}</p>` : ''}
+                        <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            <div><strong>Coordinates:</strong> ${destinationCoords.lat.toFixed(4)}, ${destinationCoords.lng.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `
+            });
+            
+            pickupMarker.addListener('click', () => {
+                pickupInfoWindow.open(map, pickupMarker);
+            });
+            
+            destinationMarker.addListener('click', () => {
+                destinationInfoWindow.open(map, destinationMarker);
+            });
+            
+            // Request directions from Google Maps with multiple travel modes
+            const travelModes = [
+                { mode: google.maps.TravelMode.DRIVING, name: 'Driving', color: '#4285f4' },
+                { mode: google.maps.TravelMode.BICYCLING, name: 'Cycling', color: '#34a853' }
+            ];
+            
+            let routesCalculated = 0;
+            const totalRoutes = travelModes.length;
+            const allRoutes = [];
+            
+            travelModes.forEach((travelMode, index) => {
+                directionsService.route({
+                    origin: pickupCoords,
+                    destination: destinationCoords,
+                    travelMode: travelMode.mode,
+                    provideRouteAlternatives: true
+                }, (response, status) => {
+                    routesCalculated++;
+                    
+                    if (status === 'OK') {
+                        // Store route data
+                        response.routes.forEach((route, routeIndex) => {
+                            allRoutes.push({
+                                route: route,
+                                travelMode: travelMode,
+                                routeIndex: routeIndex
+                            });
+                        });
+                        
+                        // If this is the first route (driving), display it immediately
+                        if (travelMode.mode === google.maps.TravelMode.DRIVING) {
+                            displayRoute(response, pickupLocation, destinationLocation, travelMode);
+                        }
+                    }
+                    
+                    // When all routes are calculated, show alternatives
+                    if (routesCalculated === totalRoutes) {
+                        displayAlternativeRoutes(allRoutes, pickupLocation, destinationLocation);
+                    }
+                });
+            });
         
         } catch (error) {
-            console.error('Error drawing route:', error);
+            console.error('Error drawing Google route:', error);
+            hideRouteLoading();
+            showRouteNotification('Error calculating route. Please try again.', 'error');
+        }
+    }
+    
+    // Show loading state for route drawing
+    function showRouteLoading() {
+        const routeInfo = document.getElementById('routeInfo');
+        routeInfo.classList.remove('hidden');
+        
+        // Create loading overlay instead of replacing content
+        let loadingOverlay = document.getElementById('routeLoadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'routeLoadingOverlay';
+            loadingOverlay.className = 'absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg';
+            loadingOverlay.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    <span class="text-gray-600 font-medium">Calculating route...</span>
+                </div>
+            `;
+            routeInfo.style.position = 'relative';
+            routeInfo.appendChild(loadingOverlay);
+        }
+    }
+    
+    // Hide loading state
+    function hideRouteLoading() {
+        const loadingOverlay = document.getElementById('routeLoadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.remove();
         }
     }
     
@@ -1301,41 +1809,60 @@
         const destinationLocationId = document.getElementById('destinationLocation').value;
         
         if (pickupLocationId && destinationLocationId) {
-            drawRoute(pickupLocationId, destinationLocationId);
+            drawGoogleRoute(pickupLocationId, destinationLocationId);
         }
     }
     
-    // Select location from map popup
-    function selectLocation(locationId, type) {
+    // Show route notification
+    function showRouteNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+        const icon = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+        
+        notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="${icon}"></i>
+                <span class="font-medium">${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Select location from Google Maps info window
+    function selectGoogleLocation(locationId, type) {
         const selectElement = document.getElementById(type === 'pickup' ? 'pickupLocation' : 'destinationLocation');
         selectElement.value = locationId;
         
         // Trigger change event to update the map
         selectElement.dispatchEvent(new Event('change'));
         
-        // Close the popup
-        map.closePopup();
-        
         // Show success message
         const location = locationLookup[locationId];
         const message = `${location.name} selected as ${type}`;
-        
-        // Create a temporary notification
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        showRouteNotification(message, 'success');
     }
     
     // Clear route and reset form
     function clearRoute() {
-        // Clear route layer
-        routeLayer.clearLayers();
+        // Clear Google Maps directions
+        if (directionsRenderer) {
+            directionsRenderer.setDirections({ routes: [] });
+        }
         
         // Hide route info
         document.getElementById('routeInfo').classList.add('hidden');
@@ -1345,23 +1872,18 @@
         document.getElementById('destinationLocation').value = '';
         
         // Reset to default view
-        map.setView([7.8731, 80.7718], 7);
+        if (map) {
+            map.setCenter({ lat: 7.8731, lng: 80.7718 });
+            map.setZoom(7);
+        }
         
         // Show success message
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = 'Route cleared successfully';
-        document.body.appendChild(notification);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        showRouteNotification('Route cleared successfully', 'info');
     }
     
     // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        initializeMap();
+        // Google Maps will initialize via callback
         
         // Set default date to today
         const today = new Date().toISOString().split('T')[0];
@@ -1382,15 +1904,70 @@
             
             if (maxPax) {
                 paxInput.max = maxPax;
+                paxInput.min = 1;
                 paxInput.placeholder = `1-${maxPax} passengers`;
                 
                 // If current value exceeds new max, adjust it
                 if (parseInt(paxInput.value) > parseInt(maxPax)) {
                     paxInput.value = maxPax;
+                    showRouteNotification(`Passenger count adjusted to ${maxPax} (vehicle capacity)`, 'info');
+                }
+                
+                // Add visual feedback
+                paxInput.style.borderColor = '#10b981';
+                paxInput.style.backgroundColor = '#f0fdf4';
+                
+                // Show vehicle capacity info
+                const vehicleInfo = document.getElementById('vehicleInfo');
+                if (vehicleInfo) {
+                    vehicleInfo.textContent = `Maximum ${maxPax} passengers for selected vehicle`;
+                    vehicleInfo.className = 'text-sm text-green-600 mt-1';
                 }
             } else {
                 paxInput.max = 20;
+                paxInput.min = 1;
                 paxInput.placeholder = '1-20 passengers';
+                paxInput.style.borderColor = '#d1d5db';
+                paxInput.style.backgroundColor = '#ffffff';
+                
+                const vehicleInfo = document.getElementById('vehicleInfo');
+                if (vehicleInfo) {
+                    vehicleInfo.textContent = 'Please select a vehicle to see passenger capacity';
+                    vehicleInfo.className = 'text-sm text-gray-500 mt-1';
+                }
+            }
+        });
+        
+        // Add real-time validation for passenger input
+        document.getElementById('paxCount').addEventListener('input', function() {
+            const vehicleSelect = document.getElementById('vehicle');
+            const selectedOption = vehicleSelect.options[vehicleSelect.selectedIndex];
+            const maxPax = selectedOption.getAttribute('data-pax');
+            const currentValue = parseInt(this.value);
+            
+            if (maxPax && currentValue > parseInt(maxPax)) {
+                this.style.borderColor = '#ef4444';
+                this.style.backgroundColor = '#fef2f2';
+                
+                // Show error message
+                const errorMsg = document.getElementById('paxError');
+                if (errorMsg) {
+                    errorMsg.textContent = `Maximum ${maxPax} passengers allowed for selected vehicle`;
+                    errorMsg.className = 'text-sm text-red-600 mt-1';
+                }
+            } else if (maxPax && currentValue <= parseInt(maxPax) && currentValue >= 1) {
+                this.style.borderColor = '#10b981';
+                this.style.backgroundColor = '#f0fdf4';
+                
+                // Hide error message
+                const errorMsg = document.getElementById('paxError');
+                if (errorMsg) {
+                    errorMsg.textContent = '';
+                    errorMsg.className = 'hidden';
+                }
+            } else {
+                this.style.borderColor = '#d1d5db';
+                this.style.backgroundColor = '#ffffff';
             }
         });
         
@@ -1452,15 +2029,44 @@
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
             
+            // Validate passenger count against vehicle capacity
+            const vehicleSelect = document.getElementById('vehicle');
+            const selectedOption = vehicleSelect.options[vehicleSelect.selectedIndex];
+            const maxPax = selectedOption.getAttribute('data-pax');
+            const passengerCount = parseInt(data.paxCount);
+            
+            if (maxPax && passengerCount > parseInt(maxPax)) {
+                showRouteNotification(`Error: Maximum ${maxPax} passengers allowed for selected vehicle`, 'error');
+                document.getElementById('paxCount').focus();
+                return false;
+            }
+            
             if (data.pickupLocation && data.destinationLocation) {
-                alert(`Booking request submitted!\n\nPickup: ${data.pickupLocation}\nDestination: ${data.destinationLocation}\nDate: ${data.pickupDate}\nTime: ${data.pickupTime}\nVehicle: ${data.vehicle}\nPassengers: ${data.paxCount}`);
+                // Get vehicle name for display
+                const vehicleName = selectedOption.textContent;
+                
+                alert(`Booking request submitted!\n\nPickup: ${data.pickupLocation}\nDestination: ${data.destinationLocation}\nDate: ${data.pickupDate}\nTime: ${data.pickupTime}\nVehicle: ${vehicleName}\nPassengers: ${data.paxCount}`);
                 
                 // Reset form
                 this.reset();
                 document.getElementById('pickupDate').value = today;
                 document.getElementById('pickupTime').value = '08:00';
                 document.getElementById('routeInfo').classList.add('hidden');
-                routeLayer.clearLayers();
+                
+                // Clear Google Maps directions
+                if (directionsRenderer) {
+                    directionsRenderer.setDirections({ routes: [] });
+                }
+                
+                // Reset map view
+                if (map) {
+                    map.setCenter({ lat: 7.8731, lng: 80.7718 });
+                    map.setZoom(7);
+                }
+                
+                showRouteNotification('Booking submitted successfully!', 'success');
+            } else {
+                showRouteNotification('Please select both pickup and destination locations', 'error');
             }
         });
     });

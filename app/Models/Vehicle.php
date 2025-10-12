@@ -15,6 +15,10 @@ class Vehicle extends Model
         'type',
         'pax_count',
         'passenger_count',
+        'pricing_type',
+        'per_km_price',
+        'first_km_price',
+        'per_100m_price',
         'price_first_km',
         'price_per_100m_after',
         'available_locations',
@@ -49,6 +53,9 @@ class Vehicle extends Model
         'features' => 'array',
         'amenities' => 'array',
         'images' => 'array',
+        'per_km_price' => 'decimal:2',
+        'first_km_price' => 'decimal:2',
+        'per_100m_price' => 'decimal:2',
         'price_first_km' => 'decimal:2',
         'price_per_100m_after' => 'decimal:2',
         'fuel_capacity' => 'decimal:2',
@@ -128,6 +135,42 @@ class Vehicle extends Model
     public function getFormattedPricePer100mAfterAttribute(): string
     {
         return 'LKR ' . number_format($this->price_per_100m_after, 2);
+    }
+
+    /**
+     * Get formatted per km price
+     */
+    public function getFormattedPerKmPriceAttribute(): string
+    {
+        return $this->per_km_price ? 'LKR ' . number_format($this->per_km_price, 2) : 'N/A';
+    }
+
+    /**
+     * Get formatted first km price
+     */
+    public function getFormattedFirstKmPriceAttribute(): string
+    {
+        return $this->first_km_price ? 'LKR ' . number_format($this->first_km_price, 2) : 'N/A';
+    }
+
+    /**
+     * Get formatted per 100m price
+     */
+    public function getFormattedPer100mPriceAttribute(): string
+    {
+        return $this->per_100m_price ? 'LKR ' . number_format($this->per_100m_price, 2) : 'N/A';
+    }
+
+    /**
+     * Get pricing type label
+     */
+    public function getPricingTypeLabelAttribute(): string
+    {
+        return match($this->pricing_type) {
+            'standard' => 'Standard Pricing (Per 1km)',
+            'first_km_meter' => 'First KM + Per 100m',
+            default => 'Standard Pricing',
+        };
     }
 
     /**

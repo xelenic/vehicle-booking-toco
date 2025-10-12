@@ -118,22 +118,67 @@
                     @enderror
                 </div>
                 
-                <div>
-                    <label for="price_first_km" class="block text-sm font-medium text-gray-700 mb-2">Price for First 1km (LKR) *</label>
-                    <input type="number" id="price_first_km" name="price_first_km" value="{{ old('price_first_km', 0) }}" required step="0.01" min="0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    @error('price_first_km')
+                <!-- Pricing Type Selection -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Pricing Type *</label>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="radio" name="pricing_type" value="standard" {{ old('pricing_type', 'standard') == 'standard' ? 'checked' : '' }}
+                                   class="pricing-type-radio rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-3 text-sm text-gray-700">Standard Pricing (Per 1km)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="pricing_type" value="first_km_meter" {{ old('pricing_type') == 'first_km_meter' ? 'checked' : '' }}
+                                   class="pricing-type-radio rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-3 text-sm text-gray-700">First KM + Per 100m Based Calculation</span>
+                        </label>
+                    </div>
+                    @error('pricing_type')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
                 
-                <div>
-                    <label for="price_per_100m_after" class="block text-sm font-medium text-gray-700 mb-2">Price per 100m After (LKR) *</label>
-                    <input type="number" id="price_per_100m_after" name="price_per_100m_after" value="{{ old('price_per_100m_after', 0) }}" required step="0.01" min="0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    @error('price_per_100m_after')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                <!-- Standard Pricing Fields -->
+                <div id="standard-pricing" class="md:col-span-2 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="per_km_price" class="block text-sm font-medium text-gray-700 mb-2">Price per 1km (LKR) *</label>
+                            <input type="number" id="per_km_price" name="per_km_price" value="{{ old('per_km_price', 0) }}" step="0.01" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            @error('per_km_price')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- First KM + Meter Based Pricing Fields -->
+                <div id="first-km-meter-pricing" class="md:col-span-2 space-y-4" style="display: none;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="first_km_price" class="block text-sm font-medium text-gray-700 mb-2">Price for First 1km (LKR) *</label>
+                            <input type="number" id="first_km_price" name="first_km_price" value="{{ old('first_km_price', 0) }}" step="0.01" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            @error('first_km_price')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <div>
+                            <label for="per_100m_price" class="block text-sm font-medium text-gray-700 mb-2">Price per 100m After (LKR) *</label>
+                            <input type="number" id="per_100m_price" name="per_100m_price" value="{{ old('per_100m_price', 0) }}" step="0.01" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            @error('per_100m_price')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Legacy Pricing Fields (Hidden) -->
+                <div style="display: none;">
+                    <input type="number" name="price_first_km" value="{{ old('price_first_km', 0) }}">
+                    <input type="number" name="price_per_100m_after" value="{{ old('price_per_100m_after', 0) }}">
                 </div>
             </div>
         </div>
@@ -418,6 +463,43 @@ document.getElementById('pax_count').addEventListener('input', function() {
         passengerCount.value = paxCount;
     }
     passengerCount.max = paxCount;
+});
+
+// Pricing type toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const pricingTypeRadios = document.querySelectorAll('.pricing-type-radio');
+    const standardPricingDiv = document.getElementById('standard-pricing');
+    const firstKmMeterPricingDiv = document.getElementById('first-km-meter-pricing');
+    
+    function togglePricingFields() {
+        const selectedType = document.querySelector('input[name="pricing_type"]:checked').value;
+        
+        if (selectedType === 'standard') {
+            standardPricingDiv.style.display = 'block';
+            firstKmMeterPricingDiv.style.display = 'none';
+            
+            // Make standard pricing fields required
+            document.getElementById('per_km_price').required = true;
+            document.getElementById('first_km_price').required = false;
+            document.getElementById('per_100m_price').required = false;
+        } else if (selectedType === 'first_km_meter') {
+            standardPricingDiv.style.display = 'none';
+            firstKmMeterPricingDiv.style.display = 'block';
+            
+            // Make first km meter pricing fields required
+            document.getElementById('per_km_price').required = false;
+            document.getElementById('first_km_price').required = true;
+            document.getElementById('per_100m_price').required = true;
+        }
+    }
+    
+    // Add event listeners to radio buttons
+    pricingTypeRadios.forEach(radio => {
+        radio.addEventListener('change', togglePricingFields);
+    });
+    
+    // Initialize on page load
+    togglePricingFields();
 });
 </script>
 @endsection

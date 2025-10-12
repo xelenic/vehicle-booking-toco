@@ -104,8 +104,17 @@
                         <div class="text-xs text-gray-500">{{ $vehicle->passenger_count }} current</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div class="font-medium">{{ $vehicle->formatted_price_first_km }}</div>
-                        <div class="text-xs text-gray-500">+ {{ $vehicle->formatted_price_per_100m_after }}/100m</div>
+                        @if($vehicle->pricing_type === 'standard')
+                            <div class="font-medium">{{ $vehicle->formatted_per_km_price }}</div>
+                            <div class="text-xs text-gray-500">per 1km</div>
+                        @elseif($vehicle->pricing_type === 'first_km_meter')
+                            <div class="font-medium">{{ $vehicle->formatted_first_km_price }}</div>
+                            <div class="text-xs text-gray-500">+ {{ $vehicle->formatted_per_100m_price }}/100m</div>
+                        @else
+                            <div class="font-medium">{{ $vehicle->formatted_price_first_km }}</div>
+                            <div class="text-xs text-gray-500">+ {{ $vehicle->formatted_price_per_100m_after }}/100m</div>
+                        @endif
+                        <div class="text-xs text-blue-600 mt-1">{{ $vehicle->pricing_type_label }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $vehicle->status_badge }}">
