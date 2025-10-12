@@ -81,7 +81,7 @@ class VehicleController extends Controller
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:100',
-            'fuel_type' => 'nullable|in:Petrol,Diesel,Electric,Hybrid',
+            'fuel_type' => 'required|in:Petrol,Diesel,Electric,Hybrid',
             'fuel_capacity' => 'nullable|numeric|min:0',
             'mileage' => 'nullable|numeric|min:0',
             'features' => 'nullable|array',
@@ -160,18 +160,20 @@ class VehicleController extends Controller
             'type' => 'required|in:car,lorry,van,bus,jeep,tuk_tuk,motorcycle',
             'pax_count' => 'required|integer|min:1|max:100',
             'passenger_count' => 'required|integer|min:0',
-            'first_1km_price' => 'required|numeric|min:0',
-            'after_100m_price' => 'required|numeric|min:0',
+            'pricing_type' => 'required|in:standard,first_km_meter',
+            'per_km_price' => 'nullable|numeric|min:0',
+            'first_km_price' => 'nullable|numeric|min:0',
+            'per_100m_price' => 'nullable|numeric|min:0',
             'available_locations' => 'required|array|min:1',
             'available_locations.*' => 'string|max:255',
             'driver_name' => 'nullable|string|max:255',
             'driver_phone' => 'nullable|string|max:20',
-            'driver_license' => 'nullable|string|max:255',
+            'driver_license_number' => 'nullable|string|max:255',
             'manufacturing_year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:100',
-            'fuel_type' => 'nullable|in:petrol,diesel,hybrid,electric',
+            'fuel_type' => 'required|in:Petrol,Diesel,Electric,Hybrid',
             'fuel_capacity' => 'nullable|numeric|min:0',
             'mileage' => 'nullable|numeric|min:0',
             'features' => 'nullable|array',
@@ -183,15 +185,27 @@ class VehicleController extends Controller
             'status' => 'required|in:available,busy,maintenance,out_of_service',
             'is_active' => 'boolean',
             'insurance_amount' => 'nullable|numeric|min:0',
-            'insurance_expiry' => 'nullable|date',
-            'maintenance_cost' => 'nullable|numeric|min:0',
+            'insurance_expiry_date' => 'nullable|date',
+            'last_maintenance_cost' => 'nullable|numeric|min:0',
             'last_maintenance_date' => 'nullable|date',
             'next_maintenance_date' => 'nullable|date',
-            'notes' => 'nullable|string',
+            'admin_notes' => 'nullable|string',
             'media_id' => 'nullable|exists:media,id',
         ]);
 
         $data = $request->all();
+
+        // Conditional validation based on pricing type
+        if ($data['pricing_type'] === 'standard') {
+            $request->validate([
+                'per_km_price' => 'required|numeric|min:0',
+            ]);
+        } elseif ($data['pricing_type'] === 'first_km_meter') {
+            $request->validate([
+                'first_km_price' => 'required|numeric|min:0',
+                'per_100m_price' => 'required|numeric|min:0',
+            ]);
+        }
 
         // Handle media_id for image selection
         if ($request->has('media_id')) {

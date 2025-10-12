@@ -224,13 +224,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="fuel_type" class="block text-sm font-medium text-gray-700 mb-2">Fuel Type</label>
-                    <select id="fuel_type" name="fuel_type"
+                    <select id="fuel_type" name="fuel_type" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Fuel Type</option>
-                        <option value="Petrol" {{ old('fuel_type') == 'Petrol' ? 'selected' : '' }}>Petrol</option>
-                        <option value="Diesel" {{ old('fuel_type') == 'Diesel' ? 'selected' : '' }}>Diesel</option>
-                        <option value="Electric" {{ old('fuel_type') == 'Electric' ? 'selected' : '' }}>Electric</option>
-                        <option value="Hybrid" {{ old('fuel_type') == 'Hybrid' ? 'selected' : '' }}>Hybrid</option>
+                        <option value="Petrol" {{ old('fuel_type', 'Petrol') == 'Petrol' ? 'selected' : '' }}>Petrol</option>
+                        <option value="Diesel" {{ old('fuel_type', 'Petrol') == 'Diesel' ? 'selected' : '' }}>Diesel</option>
+                        <option value="Electric" {{ old('fuel_type', 'Petrol') == 'Electric' ? 'selected' : '' }}>Electric</option>
+                        <option value="Hybrid" {{ old('fuel_type', 'Petrol') == 'Hybrid' ? 'selected' : '' }}>Hybrid</option>
                     </select>
                     @error('fuel_type')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -346,9 +346,9 @@
             
             <!-- Media Manager Integration -->
             <div id="media-preview" class="mb-4">
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <i class="fas fa-image text-4xl text-gray-300 mb-2"></i>
-                    <p class="text-gray-500">No image selected</p>
+                <div class="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center mx-auto">
+                    <i class="fas fa-image text-2xl text-gray-300 mb-1"></i>
+                    <p class="text-gray-500 text-sm">No image selected</p>
                 </div>
             </div>
             
@@ -426,7 +426,7 @@ function updatePreview(media) {
     const preview = document.getElementById('media-preview');
     preview.innerHTML = `
         <div class="relative group">
-            <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+            <div class="w-48 h-32 bg-gray-100 rounded-lg overflow-hidden">
                 <img src="${media.url}" alt="${media.name}" class="w-full h-full object-cover">
             </div>
             <button type="button" onclick="removeSelectedImage()" 
@@ -447,9 +447,9 @@ function updateHiddenInput(media) {
 function removeSelectedImage() {
     selectedMedia = null;
     document.getElementById('media-preview').innerHTML = `
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <i class="fas fa-image text-4xl text-gray-300 mb-2"></i>
-            <p class="text-gray-500">No image selected</p>
+        <div class="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center mx-auto">
+            <i class="fas fa-image text-2xl text-gray-300 mb-1"></i>
+            <p class="text-gray-500 text-sm">No image selected</p>
         </div>
     `;
     document.getElementById('media-input').value = '';
