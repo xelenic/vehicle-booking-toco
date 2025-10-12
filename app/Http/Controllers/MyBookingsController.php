@@ -22,7 +22,7 @@ class MyBookingsController extends Controller
     {
         $user = Auth::user();
         $bookings = Booking::where('user_id', $user->id)
-            ->with(['package', 'package.category'])
+            ->with(['package', 'package.category', 'package.media'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -39,7 +39,7 @@ class MyBookingsController extends Controller
             abort(403, 'Unauthorized access to booking.');
         }
 
-        $booking->load(['package', 'package.category', 'user']);
+        $booking->load(['package', 'package.category', 'package.media', 'user']);
 
         return view('my-bookings.show', compact('booking'));
     }
@@ -60,8 +60,8 @@ class MyBookingsController extends Controller
                 ->with('error', 'Only pending bookings can be modified.');
         }
 
-        $booking->load(['package', 'package.category']);
-        $packages = Package::with('category')->get();
+        $booking->load(['package', 'package.category', 'package.media']);
+        $packages = Package::with(['category', 'media'])->get();
 
         return view('my-bookings.edit', compact('booking', 'packages'));
     }

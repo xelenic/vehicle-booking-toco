@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function index()
     {
         // Get featured packages for the home page
-        $tourPackages = Package::with('category')
+        $tourPackages = Package::with(['category', 'media'])
             ->active()
             ->featured()
             ->ordered()
@@ -95,7 +95,7 @@ class HomeController extends Controller
 
     public function packages(Request $request)
     {
-        $query = Package::with('category')->active()->ordered();
+        $query = Package::with(['category', 'media'])->active()->ordered();
         
         // Filter by category if provided
         if ($request->has('category') && $request->category !== 'all') {
@@ -112,13 +112,13 @@ class HomeController extends Controller
 
     public function packageDetails($slug)
     {
-        $package = Package::with('category')
+        $package = Package::with(['category', 'media'])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
         // Get related packages from the same category
-        $relatedPackages = Package::with('category')
+        $relatedPackages = Package::with(['category', 'media'])
             ->where('package_category_id', $package->package_category_id)
             ->where('id', '!=', $package->id)
             ->where('is_active', true)

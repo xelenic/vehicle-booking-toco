@@ -21,7 +21,7 @@ class AdminController extends Controller
             'active_packages' => Package::where('is_active', true)->count(),
             'featured_packages' => Package::where('is_featured', true)->count(),
             'total_categories' => PackageCategory::count(),
-            'recent_packages' => Package::with('category')->latest()->limit(5)->get(),
+            'recent_packages' => Package::with(['category', 'media'])->latest()->limit(5)->get(),
             'total_blogs' => Blog::count(),
             'published_blogs' => Blog::where('is_published', true)->count(),
             'draft_blogs' => Blog::where('is_published', false)->count(),
@@ -47,7 +47,7 @@ class AdminController extends Controller
     // Package Management
     public function packages()
     {
-        $packages = Package::with('category')->latest()->paginate(10);
+        $packages = Package::with(['category', 'media'])->latest()->paginate(10);
         return view('admin.packages.index', compact('packages'));
     }
 
@@ -71,6 +71,8 @@ class AdminController extends Controller
             'group_size' => 'required|string|max:100',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'media_id' => 'nullable|exists:media,id',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'exists:media,id',
             'highlights' => 'nullable|array',
             'highlights.*' => 'string|max:255',
             'included' => 'nullable|string',

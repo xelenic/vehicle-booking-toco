@@ -21,6 +21,7 @@ class Package extends Model
         'original_price',
         'image',
         'images',
+        'gallery_images',
         'highlights',
         'rating',
         'reviews_count',
@@ -41,6 +42,7 @@ class Package extends Model
         'original_price' => 'decimal:2',
         'rating' => 'decimal:1',
         'images' => 'array',
+        'gallery_images' => 'array',
         'highlights' => 'array',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
@@ -172,6 +174,12 @@ class Package extends Model
      */
     public function getImageUrlAttribute()
     {
+        // Priority 1: Use media relationship if available
+        if ($this->media) {
+            return $this->media->url;
+        }
+        
+        // Priority 2: Use legacy image field
         if ($this->image) {
             // Check if the image path starts with 'slider/' (static images)
             if (str_starts_with($this->image, 'slider/')) {
@@ -180,6 +188,8 @@ class Package extends Model
             // Otherwise, it's a stored image in the storage directory
             return asset('storage/' . $this->image);
         }
+        
+        // Default fallback image
         return asset('slider/default-package.jpg');
     }
 }

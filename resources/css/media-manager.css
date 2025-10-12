@@ -168,6 +168,36 @@
     background-color: #eff6ff;
 }
 
+.media-manager-item.selected::after {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-manager-item.selected::before {
+    content: '✓';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
 .media-manager-item-image {
     width: 100%;
     height: 120px;
