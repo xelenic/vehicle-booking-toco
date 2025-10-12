@@ -342,29 +342,59 @@
 
         <!-- Images -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Vehicle Image</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Vehicle Images</h3>
             
-            <!-- Media Manager Integration -->
-            <div id="media-preview" class="mb-4">
-                <div class="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center mx-auto">
-                    <i class="fas fa-image text-2xl text-gray-300 mb-1"></i>
-                    <p class="text-gray-500 text-sm">No image selected</p>
+            <!-- Single Main Image -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Main Image</label>
+                
+                <div id="single-image-preview" class="mb-4">
+                    <div class="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <span class="text-gray-500">No image selected</span>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="button" 
+                            data-media-manager="true"
+                            data-input-id="single-image-input"
+                            data-preview-id="single-image-preview"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                        <i class="fas fa-image mr-2"></i>Choose Main Image
+                    </button>
+                </div>
+                
+                <input type="hidden" id="single-image-input" name="media_id" value="{{ old('media_id') }}">
+            </div>
+            
+            <!-- Gallery Images -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Gallery Images (Optional)</label>
+                
+                <div id="gallery-images-input" data-name="gallery_images[]"></div>
+                
+                <div id="gallery-images-preview" class="mb-4 grid grid-cols-4 gap-4"></div>
+                
+                <div class="text-center">
+                    <button type="button" 
+                            data-media-manager="true"
+                            data-input-id="gallery-images-input"
+                            data-preview-id="gallery-images-preview"
+                            data-multiple="true"
+                            data-max-selections="6"
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                        <i class="fas fa-images mr-2"></i>Add Gallery Images
+                    </button>
                 </div>
             </div>
-            
-            <div class="text-center">
-                <button type="button" id="open-media-manager-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
-                    <i class="fas fa-images mr-2"></i>Choose Image
-                </button>
-            </div>
-            
-            <!-- Hidden inputs -->
-            <input type="hidden" id="media-input" name="media_id" value="{{ old('media_id') }}">
             
             @error('image')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
             @error('media_id')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            @enderror
+            @error('gallery_images')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>
@@ -396,64 +426,6 @@
 </div>
 
 <script>
-let selectedMedia = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Open media manager button
-    document.getElementById('open-media-manager-btn').addEventListener('click', function() {
-        if (typeof window.openMediaManager === 'function') {
-            window.openMediaManager(function(media) {
-                selectedMedia = media;
-                updatePreview(media);
-                updateHiddenInput(media);
-            });
-        } else {
-            console.error('Media manager modal not available');
-        }
-    });
-
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (!selectedMedia) {
-            e.preventDefault();
-            alert('Please select an image for the vehicle.');
-            return false;
-        }
-    });
-});
-
-function updatePreview(media) {
-    const preview = document.getElementById('media-preview');
-    preview.innerHTML = `
-        <div class="relative group">
-            <div class="w-48 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                <img src="${media.url}" alt="${media.name}" class="w-full h-full object-cover">
-            </div>
-            <button type="button" onclick="removeSelectedImage()" 
-                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="mt-2">
-                <p class="text-sm font-medium text-gray-900">${media.name}</p>
-            </div>
-        </div>
-    `;
-}
-
-function updateHiddenInput(media) {
-    document.getElementById('media-input').value = media.id;
-}
-
-function removeSelectedImage() {
-    selectedMedia = null;
-    document.getElementById('media-preview').innerHTML = `
-        <div class="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center mx-auto">
-            <i class="fas fa-image text-2xl text-gray-300 mb-1"></i>
-            <p class="text-gray-500 text-sm">No image selected</p>
-        </div>
-    `;
-    document.getElementById('media-input').value = '';
-}
 
 // Auto-update passenger count when pax count changes
 document.getElementById('pax_count').addEventListener('input', function() {

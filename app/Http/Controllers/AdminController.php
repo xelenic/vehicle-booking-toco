@@ -37,7 +37,7 @@ class AdminController extends Controller
             'pending_payments' => Booking::where('payment_status', 'pending')->count(),
             'paid_bookings' => Booking::where('payment_status', 'paid')->count(),
             'failed_payments' => Booking::where('payment_status', 'failed')->count(),
-            'recent_bookings' => Booking::with(['package', 'user'])->latest()->limit(5)->get(),
+            'recent_bookings' => Booking::with(['package', 'package.media', 'user'])->latest()->limit(5)->get(),
             'total_revenue' => Booking::where('payment_status', 'paid')->sum('total_amount'),
         ];
 
@@ -254,7 +254,7 @@ class AdminController extends Controller
     // Booking Management
     public function bookings()
     {
-        $bookings = Booking::with(['package', 'user'])->latest()->paginate(15);
+        $bookings = Booking::with(['package', 'package.media', 'user'])->latest()->paginate(15);
         return view('admin.bookings.index', compact('bookings'));
     }
 

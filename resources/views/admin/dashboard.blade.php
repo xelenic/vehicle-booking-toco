@@ -122,7 +122,15 @@
                     @foreach($stats['recent_packages'] as $package)
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
-                            <img src="{{ $package->image_url }}" alt="{{ $package->title }}" class="w-12 h-12 rounded-lg object-cover">
+                            @if($package->media)
+                                <img src="{{ $package->media->url }}" alt="{{ $package->title }}" class="w-12 h-12 rounded-lg object-cover">
+                            @elseif($package->image)
+                                <img src="{{ asset($package->image) }}" alt="{{ $package->title }}" class="w-12 h-12 rounded-lg object-cover">
+                            @else
+                                <div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-900 truncate">{{ $package->title }}</p>
