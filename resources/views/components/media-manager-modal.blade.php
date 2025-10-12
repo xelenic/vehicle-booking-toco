@@ -1,33 +1,31 @@
 <!-- Media Manager Popup Modal -->
-<div id="media-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[10000] hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <!-- Modal Header -->
-            <div class="p-6 border-b bg-gray-50">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-semibold text-gray-900">Media Manager</h3>
-                    <button id="close-media-modal" class="text-gray-400 hover:text-gray-600 text-2xl">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+<div id="media-manager-modal" class="media-manager-modal">
+    <div class="media-manager-modal-content">
+        <!-- Modal Header -->
+        <div class="media-manager-header">
+            <div class="flex justify-between items-center">
+                <h3 class="media-manager-title">Media Manager</h3>
+                <button id="close-media-modal" class="media-manager-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div class="media-manager-tabs">
+            <nav class="media-manager-tab-nav" aria-label="Tabs">
+                <button id="upload-tab" class="media-manager-tab-button active">
+                    <i class="fas fa-upload mr-2"></i>Upload New Image
+                </button>
+                <button id="library-tab" class="media-manager-tab-button">
+                    <i class="fas fa-images mr-2"></i>Select from Library
+                </button>
+            </nav>
+        </div>
             
-            <!-- Tab Navigation -->
-            <div class="border-b">
-                <nav class="flex space-x-8 px-6" aria-label="Tabs">
-                    <button id="upload-tab" class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
-                        <i class="fas fa-upload mr-2"></i>Upload New Image
-                    </button>
-                    <button id="library-tab" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                        <i class="fas fa-images mr-2"></i>Select from Library
-                    </button>
-                </nav>
-            </div>
-            
-            <!-- Tab Content -->
-            <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-                <!-- Upload Tab Content -->
-                <div id="upload-tab-content" class="tab-content">
+        <!-- Tab Content -->
+        <!-- Upload Tab Content -->
+        <div id="upload-tab-content" class="media-manager-tab-content">
                     <div class="max-w-md mx-auto">
                         <div class="mb-6">
                             <h4 class="text-lg font-medium text-gray-900 mb-2">Upload New Image</h4>
@@ -37,21 +35,27 @@
                         <form id="upload-form" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             <div>
-                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
-                                    <div class="space-y-1 text-center">
-                                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                                        <div class="flex text-sm text-gray-600">
-                                            <label for="file-input" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                                <span>Upload a file</span>
+                                <div class="media-manager-upload-area" id="upload-drop-zone">
+                                    <div class="text-center">
+                                        <i class="fas fa-cloud-upload-alt media-manager-upload-icon"></i>
+                                        <div class="media-manager-upload-text">
+                                            <label for="file-input" class="media-manager-upload-button">
+                                                Upload a file
                                                 <input id="file-input" name="file" type="file" accept="image/*" required class="sr-only">
                                             </label>
-                                            <p class="pl-1">or drag and drop</p>
+                                            <span class="ml-2">or drag and drop</span>
                                         </div>
                                         <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
                                     </div>
                                 </div>
                                 <div id="file-preview" class="mt-4 hidden">
-                                    <img id="preview-image" src="" alt="Preview" class="max-w-full h-48 object-cover rounded-lg">
+                                    <div class="media-manager-preview">
+                                        <img id="preview-image" src="" alt="Preview" class="media-manager-preview-image">
+                                        <button type="button" onclick="mediaManagerModal.removePreview()" class="media-manager-preview-remove">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="media-manager-preview-name" id="preview-name"></div>
                                 </div>
                                 <div id="upload-progress" class="mt-4 hidden">
                                     <div class="bg-gray-200 rounded-full h-2">
@@ -68,82 +72,50 @@
                             </div>
                         </form>
                     </div>
+        </div>
+        
+        <!-- Library Tab Content -->
+        <div id="library-tab-content" class="media-manager-tab-content hidden">
+                <div class="media-manager-search-container">
+                    <input type="text" id="library-search" placeholder="Search images..." 
+                           class="media-manager-search">
+                    <select id="library-folder-filter" class="media-manager-folder-filter">
+                        <option value="">All Folders</option>
+                    </select>
                 </div>
                 
-                <!-- Library Tab Content -->
-                <div id="library-tab-content" class="tab-content hidden">
-                    <div class="mb-4">
-                        <div class="flex gap-4">
-                            <input type="text" id="library-search" placeholder="Search images..." 
-                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <select id="library-folder-filter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">All Folders</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div id="library-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        <!-- Library images will be loaded here -->
-                    </div>
-                    
-                    <!-- Loading indicator -->
-                    <div id="library-loading" class="text-center py-8 hidden">
-                        <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-                        <p class="text-gray-500 mt-2">Loading images...</p>
-                    </div>
-                    
-                    <!-- Empty state -->
-                    <div id="library-empty-state" class="text-center py-12 hidden">
-                        <i class="fas fa-images text-4xl text-gray-300 mb-4"></i>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">No images found</h3>
-                        <p class="text-gray-500">Try uploading some images first</p>
-                    </div>
+                <div id="library-grid" class="media-manager-grid">
+                    <!-- Library images will be loaded here -->
                 </div>
-            </div>
-            
-            <!-- Modal Footer -->
-            <div class="p-6 border-t bg-gray-50">
-                <div class="flex justify-end space-x-3">
-                    <button id="close-modal-btn" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
-                        Close
-                    </button>
-                    <button id="select-image-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled>
-                        <i class="fas fa-check mr-2"></i>Select Image
-                    </button>
+                
+                <!-- Loading indicator -->
+                <div id="library-loading" class="media-manager-loading hidden">
+                    <div class="media-manager-spinner"></div>
+                    <span>Loading images...</span>
                 </div>
-            </div>
+                
+                <!-- Empty state -->
+                <div id="library-empty-state" class="media-manager-empty hidden">
+                    <div class="media-manager-empty-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div class="media-manager-empty-text">No images found</div>
+                    <div class="media-manager-empty-subtext">Try uploading some images first</div>
+                </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="media-manager-footer">
+            <button id="close-modal-btn" class="media-manager-button media-manager-button-secondary">
+                Close
+            </button>
+            <button id="select-image-btn" class="media-manager-button media-manager-button-primary" disabled>
+                <i class="fas fa-check mr-2"></i>Select Image
+            </button>
         </div>
     </div>
 </div>
 
-<style>
-.tab-button.active {
-    border-bottom-color: #3b82f6;
-    color: #2563eb;
-}
-
-.tab-content {
-    display: block;
-}
-
-.tab-content.hidden {
-    display: none;
-}
-
-.media-item {
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.media-item:hover {
-    transform: scale(1.02);
-}
-
-.media-item.selected {
-    border-color: #3b82f6;
-    background-color: #eff6ff;
-}
-</style>
 
 <script>
 class MediaManagerModal {
@@ -162,7 +134,7 @@ class MediaManagerModal {
     async testConnection() {
         try {
             console.log('Testing connection...');
-            const response = await fetch('/test-media', {
+            const response = await fetch('/admin/media', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -171,8 +143,7 @@ class MediaManagerModal {
             });
             
             if (response.ok) {
-                const data = await response.json();
-                console.log('Test connection successful:', data);
+                console.log('Media manager connection successful');
             } else {
                 console.error('Test connection failed:', response.status);
             }
@@ -210,13 +181,13 @@ class MediaManagerModal {
     open(callback) {
         this.selectionCallback = callback;
         this.selectedImage = null;
-        document.getElementById('media-manager-modal').classList.remove('hidden');
+        document.getElementById('media-manager-modal').classList.add('show');
         this.switchTab('upload');
         document.getElementById('select-image-btn').disabled = true;
     }
 
     close() {
-        document.getElementById('media-manager-modal').classList.add('hidden');
+        document.getElementById('media-manager-modal').classList.remove('show');
         this.selectedImage = null;
         this.selectionCallback = null;
         document.getElementById('select-image-btn').disabled = true;
@@ -225,19 +196,26 @@ class MediaManagerModal {
 
     switchTab(tab) {
         // Update tab buttons
-        document.querySelectorAll('.tab-button').forEach(btn => {
+        document.querySelectorAll('.media-manager-tab-button').forEach(btn => {
             btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
             btn.classList.add('border-transparent', 'text-gray-500');
         });
         
-        document.getElementById(`${tab}-tab`).classList.add('active', 'border-blue-500', 'text-blue-600');
-        document.getElementById(`${tab}-tab`).classList.remove('border-transparent', 'text-gray-500');
+        const activeTab = document.getElementById(`${tab}-tab`);
+        if (activeTab) {
+            activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+            activeTab.classList.remove('border-transparent', 'text-gray-500');
+        }
         
         // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => {
+        document.querySelectorAll('.media-manager-tab-content').forEach(content => {
             content.classList.add('hidden');
         });
-        document.getElementById(`${tab}-tab-content`).classList.remove('hidden');
+        
+        const activeContent = document.getElementById(`${tab}-tab-content`);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+        }
         
         // Load library images if switching to library tab
         if (tab === 'library') {
@@ -445,7 +423,7 @@ class MediaManagerModal {
         }
         
         grid.innerHTML = media.map(item => `
-            <div class="media-item relative group border-2 border-transparent hover:border-blue-300 rounded-lg overflow-hidden" 
+            <div class="media-manager-item relative group border-2 border-transparent hover:border-blue-300 rounded-lg overflow-hidden" 
                  data-id="${item.id}" onclick="mediaManagerModal.selectImage(${item.id}, '${item.url}', '${item.original_name}')">
                 <div class="aspect-square bg-gray-100">
                     <img src="${item.url}" alt="${item.alt_text || item.original_name}" 
@@ -468,7 +446,7 @@ class MediaManagerModal {
 
     selectImage(id, url, name) {
         // Remove previous selection
-        document.querySelectorAll('.media-item').forEach(item => {
+        document.querySelectorAll('.media-manager-item').forEach(item => {
             item.classList.remove('selected', 'border-blue-500', 'bg-blue-50');
             item.classList.add('border-transparent');
         });
