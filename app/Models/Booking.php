@@ -10,11 +10,16 @@ class Booking extends Model
     protected $fillable = [
         'package_id',
         'user_id',
+        'vehicle_id',
+        'pickup_location_id',
+        'destination_location_id',
         'full_name',
         'email',
         'phone',
         'travel_date',
+        'pickup_time',
         'travelers',
+        'distance',
         'special_requests',
         'total_amount',
         'status',
@@ -24,10 +29,13 @@ class Booking extends Model
         'payment_reference',
         'payhere_order_id',
         'payhere_payment_id',
+        'booking_type',
     ];
 
     protected $casts = [
         'travel_date' => 'date',
+        'pickup_time' => 'datetime:H:i',
+        'distance' => 'decimal:2',
         'total_amount' => 'decimal:2',
     ];
 
@@ -39,6 +47,21 @@ class Booking extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    public function pickupLocation(): BelongsTo
+    {
+        return $this->belongsTo(Location::class, 'pickup_location_id');
+    }
+
+    public function destinationLocation(): BelongsTo
+    {
+        return $this->belongsTo(Location::class, 'destination_location_id');
     }
 
     public function getFormattedAmountAttribute(): string

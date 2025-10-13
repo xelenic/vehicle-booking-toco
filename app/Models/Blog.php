@@ -16,6 +16,8 @@ class Blog extends Model
         'content',
         'featured_image',
         'images',
+        'gallery_images',
+        'media_id',
         'tags',
         'meta_title',
         'meta_description',
@@ -28,6 +30,7 @@ class Blog extends Model
 
     protected $casts = [
         'images' => 'array',
+        'gallery_images' => 'array',
         'tags' => 'array',
         'is_published' => 'boolean',
         'is_featured' => 'boolean',
@@ -68,6 +71,14 @@ class Blog extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(BlogCategory::class, 'blog_category_id');
+    }
+
+    /**
+     * Get the media that owns the blog.
+     */
+    public function media(): BelongsTo
+    {
+        return $this->belongsTo(Media::class);
     }
 
     /**

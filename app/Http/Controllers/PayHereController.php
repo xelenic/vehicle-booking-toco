@@ -29,7 +29,7 @@ class PayHereController extends Controller
             'booking_id' => 'required|exists:bookings,id',
         ]);
 
-        $booking = Booking::findOrFail($request->booking_id);
+        $booking = Booking::with(['package', 'package.media', 'vehicle', 'pickupLocation', 'destinationLocation', 'user'])->findOrFail($request->booking_id);
 
         // Generate unique order ID
         $orderId = 'BK' . $booking->id . '_' . time();
@@ -55,7 +55,9 @@ class PayHereController extends Controller
             'city' => 'Colombo',
             'country' => 'Sri Lanka',
             'order_id' => $orderId,
-            'items' => $booking->package->title,
+            'items' => $booking->booking_type === 'vehicle' 
+                ? ($booking->vehicle ? $booking->vehicle->name : 'Vehicle Booking')
+                : ($booking->package ? $booking->package->title : 'Booking'),
             'currency' => 'LKR',
             'amount' => number_format($booking->total_amount, 2, '.', ''),
             'hash' => $this->generateHash($orderId, $booking->total_amount, 'LKR')

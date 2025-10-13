@@ -76,7 +76,11 @@ class HomeController extends Controller
                     'pax_count' => $vehicle->pax_count,
                     'registration_number' => $vehicle->registration_number,
                     'driver_name' => $vehicle->driver_name,
-                    'description' => $this->getVehicleDescription($vehicle)
+                    'description' => $this->getVehicleDescription($vehicle),
+                    'pricing_type' => $vehicle->pricing_type,
+                    'per_km_price' => $vehicle->per_km_price,
+                    'first_km_price' => $vehicle->first_km_price,
+                    'per_100m_price' => $vehicle->per_100m_price
                 ];
             });
 

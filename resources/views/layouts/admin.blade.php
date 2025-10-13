@@ -553,6 +553,16 @@
                     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</h3>
                 </div>
                 
+                <a href="{{ route('admin.about.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 {{ request()->routeIs('admin.about*') ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : '' }}">
+                    <i class="fas fa-info-circle mr-3"></i>
+                    About Pages
+                </a>
+                
+                <a href="{{ route('admin.settings.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200 {{ request()->routeIs('admin.settings*') ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : '' }}">
+                    <i class="fas fa-cog mr-3"></i>
+                    Settings
+                </a>
+                
                 <a href="{{ route('home') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200" target="_blank">
                     <i class="fas fa-external-link-alt mr-3"></i>
                     View Website

@@ -58,8 +58,9 @@ class BlogController extends Controller
             'blog_category_id' => 'required|exists:blog_categories,id',
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'media_id' => 'nullable|exists:media,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'exists:media,id',
+            'tags' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'boolean',
@@ -67,6 +68,9 @@ class BlogController extends Controller
         ]);
 
         $data = $request->all();
+        
+        // Debug: Log the incoming data
+        \Log::info('Blog creation data:', $data);
         
         // Generate slug
         $data['slug'] = Str::slug($request->title);
@@ -82,17 +86,28 @@ class BlogController extends Controller
         }
         
         // Handle tags array
-        if ($request->has('tags')) {
-            $data['tags'] = array_filter($request->tags);
+        if ($request->has('tags') && $request->tags) {
+            // Convert comma-separated string to array
+            $tags = is_array($request->tags) ? $request->tags : explode(',', $request->tags);
+            $data['tags'] = array_filter(array_map('trim', $tags));
         }
         
         // Set default values
         $data['views_count'] = 0;
         $data['sort_order'] = 0;
+        
+        // Handle boolean fields
+        $data['is_published'] = $request->has('is_published');
+        $data['is_featured'] = $request->has('is_featured');
 
-        Blog::create($data);
-
-        return redirect()->route('admin.blog.index')->with('success', 'Blog post created successfully!');
+        try {
+            $blog = Blog::create($data);
+            \Log::info('Blog created successfully with ID:', ['id' => $blog->id]);
+            return redirect()->route('admin.blog.index')->with('success', 'Blog post created successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Blog creation failed:', ['error' => $e->getMessage(), 'data' => $data]);
+            return back()->withInput()->with('error', 'Failed to create blog post: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -123,8 +138,10 @@ class BlogController extends Controller
             'content' => 'required|string',
             'blog_category_id' => 'required|exists:blog_categories,id',
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
+            'media_id' => 'nullable|exists:media,id',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'exists:media,id',
+            'tags' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'boolean',
@@ -151,9 +168,15 @@ class BlogController extends Controller
         }
         
         // Handle tags array
-        if ($request->has('tags')) {
-            $data['tags'] = array_filter($request->tags);
+        if ($request->has('tags') && $request->tags) {
+            // Convert comma-separated string to array
+            $tags = is_array($request->tags) ? $request->tags : explode(',', $request->tags);
+            $data['tags'] = array_filter(array_map('trim', $tags));
         }
+        
+        // Handle boolean fields
+        $data['is_published'] = $request->has('is_published');
+        $data['is_featured'] = $request->has('is_featured');
 
         $blog->update($data);
 

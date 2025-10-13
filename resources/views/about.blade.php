@@ -1,23 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'About Us - Ceylon Mirissa')
-@section('description', 'Learn about Ceylon Mirissa, your trusted partner for authentic Sri Lankan travel experiences. Discover our story, mission, and commitment to showcasing the beauty of Sri Lanka.')
+@section('title', isset($about->meta_title) ? $about->meta_title : 'About Us - Ceylon Mirissa')
+@section('description', isset($about->meta_description) ? $about->meta_description : 'Learn about Ceylon Mirissa, your trusted partner for authentic Sri Lankan travel experiences. Discover our story, mission, and commitment to showcasing the beauty of Sri Lanka.')
 
 @section('content')
 <!-- Hero Section -->
 <section class="relative h-[50vh] flex items-center justify-center overflow-hidden pt-20">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ $about->hero_image_url ?? asset('slider/default-about.jpg') }}');">
         <div class="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-green-900/70"></div>
     </div>
     
     <div class="relative z-10 text-center text-white px-4">
         <div class="max-w-4xl mx-auto">
             <h1 class="text-3xl md:text-4xl font-bold playfair mb-4 animate-fade-in">
-                About
-                <span class="gradient-text">Ceylon Mirissa</span>
+                {{ $about->title ?? 'About Ceylon Mirissa' }}
             </h1>
             <p class="text-lg md:text-xl mb-6 opacity-90 animate-fade-in-delay">
-                Your trusted partner in discovering the authentic beauty of Sri Lanka
+                {{ $about->subtitle ?? 'Your trusted partner in discovering the authentic beauty of Sri Lanka' }}
             </p>
             <div class="animate-fade-in-delay-2">
                 <a href="#our-story" class="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
@@ -37,33 +36,48 @@
                     Our Story
                 </h2>
                 <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Born from a deep love for Sri Lanka's rich heritage and natural beauty, Ceylon Mirissa has been creating unforgettable travel experiences since our founding.
+                    {{ $about->subtitle ?? 'Born from a deep love for Sri Lanka\'s rich heritage and natural beauty, Ceylon Mirissa has been creating unforgettable travel experiences since our founding.' }}
                 </p>
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-16">
                 <div class="space-y-4">
                     <h3 class="text-2xl font-bold text-gray-900 playfair">A Journey of Discovery</h3>
-                    <p class="text-gray-600 leading-relaxed text-sm">
-                        Founded by passionate travelers who fell in love with Sri Lanka's diverse landscapes, ancient temples, and warm hospitality, Ceylon Mirissa began as a dream to share this paradise with the world.
-                    </p>
-                    <p class="text-gray-600 leading-relaxed text-sm">
-                        From the misty mountains of Ella to the golden beaches of Mirissa, from the ancient frescoes of Sigiriya to the sacred temples of Kandy, we curate experiences that showcase the very best of this incredible island nation.
-                    </p>
-                    <div class="flex items-center space-x-3">
-                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="text-xl font-semibold text-gray-900">Authentic Experiences</h4>
-                            <p class="text-gray-600">Handpicked destinations and local insights</p>
-                        </div>
+                    <div class="text-gray-600 leading-relaxed text-sm">
+                        {!! nl2br(e($about->content ?? 'Founded by passionate travelers who fell in love with Sri Lanka\'s diverse landscapes, ancient temples, and warm hospitality, Ceylon Mirissa began as a dream to share this paradise with the world. From the misty mountains of Ella to the golden beaches of Mirissa, from the ancient frescoes of Sigiriya to the sacred temples of Kandy, we curate experiences that showcase the very best of this incredible island nation.')) !!}
                     </div>
+                    @if(isset($about->features) && count($about->features) > 0)
+                        <div class="flex items-center space-x-3">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-semibold text-gray-900">{{ $about->features[0]['title'] ?? 'Authentic Experiences' }}</h4>
+                                <p class="text-gray-600">{{ $about->features[0]['description'] ?? 'Handpicked destinations and local insights' }}</p>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex items-center space-x-3">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-semibold text-gray-900">Authentic Experiences</h4>
+                                <p class="text-gray-600">Handpicked destinations and local insights</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
                 <div class="relative">
-                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sri Lankan landscape" class="rounded-2xl shadow-2xl">
+                    @if(isset($about->gallery_images_with_urls) && count($about->gallery_images_with_urls) > 0)
+                        <img src="{{ $about->gallery_images_with_urls[0]['url'] }}" alt="{{ $about->gallery_images_with_urls[0]['alt'] }}" class="rounded-2xl shadow-2xl">
+                    @else
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sri Lankan landscape" class="rounded-2xl shadow-2xl">
+                    @endif
                     <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -90,45 +104,72 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Mission -->
-                <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
+                @if(isset($about->features) && count($about->features) >= 3)
+                    @foreach(array_slice($about->features, 0, 3) as $index => $feature)
+                        <div class="text-center p-4 bg-gradient-to-br {{ $index === 0 ? 'from-blue-50 to-blue-100' : ($index === 1 ? 'from-green-50 to-green-100' : 'from-purple-50 to-purple-100') }} rounded-xl">
+                            <div class="w-10 h-10 bg-gradient-to-r {{ $index === 0 ? 'from-blue-500 to-blue-600' : ($index === 1 ? 'from-green-500 to-green-600' : 'from-purple-500 to-purple-600') }} rounded-full flex items-center justify-center mx-auto mb-4">
+                                @if($index === 0)
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                @elseif($index === 1)
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                @else
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                @endif
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 playfair mb-3">{{ $feature['title'] }}</h3>
+                            <p class="text-gray-600 leading-relaxed text-sm">
+                                {{ $feature['description'] }}
+                            </p>
+                        </div>
+                    @endforeach
+                @else
+                    <!-- Mission -->
+                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Mission</h3>
+                        <p class="text-gray-600 leading-relaxed text-sm">
+                            To showcase the authentic beauty of Sri Lanka through carefully curated experiences that connect travelers with the island's rich culture, stunning landscapes, and warm people.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Mission</h3>
-                    <p class="text-gray-600 leading-relaxed text-sm">
-                        To showcase the authentic beauty of Sri Lanka through carefully curated experiences that connect travelers with the island's rich culture, stunning landscapes, and warm people.
-                    </p>
-                </div>
-                
-                <!-- Vision -->
-                <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
+                    
+                    <!-- Vision -->
+                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Vision</h3>
+                        <p class="text-gray-600 leading-relaxed text-sm">
+                            To be the leading travel company that helps visitors discover the hidden gems of Sri Lanka while promoting sustainable tourism and supporting local communities.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Vision</h3>
-                    <p class="text-gray-600 leading-relaxed text-sm">
-                        To be the leading travel company that helps visitors discover the hidden gems of Sri Lanka while promoting sustainable tourism and supporting local communities.
-                    </p>
-                </div>
-                
-                <!-- Values -->
-                <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
+                    
+                    <!-- Values -->
+                    <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Values</h3>
+                        <p class="text-gray-600 leading-relaxed text-sm">
+                            Authenticity, sustainability, and exceptional service guide everything we do. We believe in creating meaningful connections between travelers and the places they visit.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 playfair mb-3">Our Values</h3>
-                    <p class="text-gray-600 leading-relaxed text-sm">
-                        Authenticity, sustainability, and exceptional service guide everything we do. We believe in creating meaningful connections between travelers and the places they visit.
-                    </p>
-                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -148,45 +189,137 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Team Member 1 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-lg font-bold text-gray-900 playfair mb-2">Rajesh Perera</h3>
-                        <p class="text-blue-600 font-semibold mb-3 text-sm">Founder & CEO</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            A native of Kandy with over 15 years of experience in tourism, Rajesh founded Ceylon Mirissa to share his love for Sri Lanka's cultural heritage.
-                        </p>
+                @if($about->team_members_with_images && count($about->team_members_with_images) > 0)
+                    @foreach($about->team_members_with_images as $member)
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                            @if($member['image_url'])
+                                <img src="{{ $member['image_url'] }}" alt="{{ $member['name'] }}" class="w-full h-48 object-cover">
+                            @else
+                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-user text-gray-400 text-4xl"></i>
+                                </div>
+                            @endif
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold text-gray-900 playfair mb-2">{{ $member['name'] ?? 'Team Member' }}</h3>
+                                <p class="text-blue-600 font-semibold mb-3 text-sm">{{ $member['position'] ?? 'Position' }}</p>
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    {{ $member['description'] ?? 'Team member description' }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <!-- Fallback Team Members -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-lg font-bold text-gray-900 playfair mb-2">Rajesh Perera</h3>
+                            <p class="text-blue-600 font-semibold mb-3 text-sm">Founder & CEO</p>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                A native of Kandy with over 15 years of experience in tourism, Rajesh founded Ceylon Mirissa to share his love for Sri Lanka's cultural heritage.
+                            </p>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Team Member 2 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-xl font-bold text-gray-900 playfair mb-2">Priya Fernando</h3>
-                        <p class="text-green-600 font-semibold mb-3">Head of Operations</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Born in Mirissa, Priya ensures every detail of your journey is perfect. Her expertise in wildlife and marine conservation adds depth to our eco-tours.
-                        </p>
+                    
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-xl font-bold text-gray-900 playfair mb-2">Priya Fernando</h3>
+                            <p class="text-green-600 font-semibold mb-3">Head of Operations</p>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Born in Mirissa, Priya ensures every detail of your journey is perfect. Her expertise in wildlife and marine conservation adds depth to our eco-tours.
+                            </p>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Team Member 3 -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-xl font-bold text-gray-900 playfair mb-2">Kumar Silva</h3>
-                        <p class="text-purple-600 font-semibold mb-3">Lead Guide</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            With extensive knowledge of Sri Lanka's ancient sites and hiking trails, Kumar brings history and adventure to life for our guests.
-                        </p>
+                    
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Team member" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-xl font-bold text-gray-900 playfair mb-2">Kumar Silva</h3>
+                            <p class="text-purple-600 font-semibold mb-3">Lead Guide</p>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                With extensive knowledge of Sri Lanka's ancient sites and hiking trails, Kumar brings history and adventure to life for our guests.
+                            </p>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
 </section>
+
+<!-- Vision & Mission Section -->
+@if($about && ($about->vision || $about->mission || ($about->values && count($about->values) > 0)))
+<section class="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="container mx-auto px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 playfair mb-4">
+                    Our Vision, Mission & Values
+                </h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                    The principles that guide us in creating exceptional experiences for our guests
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <!-- Vision -->
+                @if($about->vision)
+                <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-eye text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 playfair mb-4">Our Vision</h3>
+                    </div>
+                    <p class="text-gray-700 text-lg leading-relaxed text-center">
+                        {{ $about->vision }}
+                    </p>
+                </div>
+                @endif
+                
+                <!-- Mission -->
+                @if($about->mission)
+                <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-bullseye text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 playfair mb-4">Our Mission</h3>
+                    </div>
+                    <p class="text-gray-700 text-lg leading-relaxed text-center">
+                        {{ $about->mission }}
+                    </p>
+                </div>
+                @endif
+            </div>
+            
+            <!-- Core Values -->
+            @if($about->values && count($about->values) > 0)
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-heart text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 playfair mb-4">Our Core Values</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($about->values as $value)
+                    <div class="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl hover:shadow-md transition-all duration-300">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">{{ $value['title'] ?? 'Value' }}</h4>
+                        <p class="text-gray-600 leading-relaxed">
+                            {{ $value['description'] ?? '' }}
+                        </p>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</section>
+@endif
 
 <!-- Why Choose Us Section -->
 <section class="py-12 bg-white">

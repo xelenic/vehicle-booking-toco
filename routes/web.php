@@ -6,21 +6,26 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\LocationVehiclePriceController as AdminLocationVehiclePriceController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\AboutController as AdminAboutController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PayHereController;
 use App\Http\Controllers\MyBookingsController;
 use App\Http\Controllers\SearchController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/packages', [HomeController::class, 'packages'])->name('packages');
 Route::get('/package/{slug}', [HomeController::class, 'packageDetails'])->name('package.details');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+// About Routes
+Route::get('/about', [AboutController::class, 'index'])->name('about');
 
 // Blog Routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
@@ -30,6 +35,13 @@ Route::get('/blog/search', [BlogController::class, 'search'])->name('blog.search
 
 // Booking Routes
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+
+// Vehicle Booking Routes
+Route::prefix('vehicle-booking')->group(function () {
+    Route::post('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price');
+    Route::post('/create', [App\Http\Controllers\VehicleBookingController::class, 'createBooking'])->name('vehicle.booking.create');
+    Route::get('/details/{bookingId}', [App\Http\Controllers\VehicleBookingController::class, 'getBookingDetails'])->name('vehicle.booking.details');
+});
 
 // PayHere Payment Routes
 Route::get('/payhere/initialize', [PayHereController::class, 'initializePayment'])->name('payhere.initialize');
@@ -107,6 +119,23 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
     Route::patch('/reviews/{review}/toggle-approval', [AdminReviewController::class, 'toggleApproval'])->name('admin.reviews.toggle-approval');
     Route::patch('/reviews/{review}/toggle-featured', [AdminReviewController::class, 'toggleFeatured'])->name('admin.reviews.toggle-featured');
+    
+    // Settings Management
+    Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::get('/settings/create', [SettingsController::class, 'create'])->name('admin.settings.create');
+    Route::post('/settings', [SettingsController::class, 'store'])->name('admin.settings.store');
+    Route::get('/settings/{setting}/edit', [SettingsController::class, 'edit'])->name('admin.settings.edit');
+    Route::put('/settings/{setting}', [SettingsController::class, 'updateSetting'])->name('admin.settings.update-setting');
+    Route::delete('/settings/{setting}', [SettingsController::class, 'destroy'])->name('admin.settings.destroy');
+    
+    // About Page Management (Single Page)
+    Route::get('/about', [AdminAboutController::class, 'index'])->name('admin.about.index');
+    Route::get('/about/create', [AdminAboutController::class, 'create'])->name('admin.about.create');
+    Route::post('/about', [AdminAboutController::class, 'store'])->name('admin.about.store');
+    Route::get('/about/edit', [AdminAboutController::class, 'edit'])->name('admin.about.edit');
+    Route::put('/about', [AdminAboutController::class, 'update'])->name('admin.about.update');
+    Route::delete('/about', [AdminAboutController::class, 'destroy'])->name('admin.about.destroy');
     
     // Booking Management
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('admin.bookings');

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        #map {
+            height: 400px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Maps API Diagnostic Test</h1>
+        
+        <div id="status-container">
+            <div class="status info">
+                <strong>Testing Google Maps API...</strong><br>
+                API Key: <span id="api-key-display">Loading...</span>
+            </div>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="testBasicMap()">Test Basic Map</button>
+            <button class="test-button" onclick="testPlacesAPI()">Test Places API</button>
+            <button class="test-button" onclick="testDirectionsAPI()">Test Directions API</button>
+            <button class="test-button" onclick="testMarkerLibrary()">Test Marker Library</button>
+        </div>
+
+        <div id="map"></div>
+
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // API Key from Laravel config (you'll need to replace this with your actual key)
+        const API_KEY = 'AIzaSyAfaIXojUkRZePqWFdgvawI8MBWONn5Aw4';
+        
+        let map;
+        let statusContainer = document.getElementById('status-container');
+        let testResults = document.getElementById('test-results');
+        let apiKeyDisplay = document.getElementById('api-key-display');
+
+        // Display API key (masked for security)
+        apiKeyDisplay.textContent = API_KEY.substring(0, 10) + '...' + API_KEY.substring(API_KEY.length - 4);
+
+        function addStatus(message, type = 'info') {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            statusContainer.appendChild(statusDiv);
+        }
+
+        function addTestResult(test, result, details = '') {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `status ${result === 'PASS' ? 'success' : 'error'}`;
+            resultDiv.innerHTML = `<strong>${test}:</strong> ${result} ${details}`;
+            testResults.appendChild(resultDiv);
+        }
+
+        function initMap() {
+            try {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 7.8731, lng: 80.7718 }, // Sri Lanka
+                    zoom: 7
+                });
+                addStatus('✅ Basic map initialized successfully', 'success');
+                addTestResult('Basic Map', 'PASS', 'Map loads and displays correctly');
+            } catch (error) {
+                addStatus('❌ Failed to initialize basic map: ' + error.message, 'error');
+                addTestResult('Basic Map', 'FAIL', error.message);
+            }
+        }
+
+        function testPlacesAPI() {
+            if (!map) {
+                addTestResult('Places API', 'FAIL', 'Map not initialized');
+                return;
+            }
+
+            try {
+                const service = new google.maps.places.PlacesService(map);
+                addTestResult('Places API', 'PASS', 'PlacesService created successfully');
+            } catch (error) {
+                addTestResult('Places API', 'FAIL', error.message);
+            }
+        }
+
+        function testDirectionsAPI() {
+            try {
+                const directionsService = new google.maps.DirectionsService();
+                const directionsRenderer = new google.maps.DirectionsRenderer();
+                addTestResult('Directions API', 'PASS', 'DirectionsService and DirectionsRenderer created successfully');
+            } catch (error) {
+                addTestResult('Directions API', 'FAIL', error.message);
+            }
+        }
+
+        function testMarkerLibrary() {
+            try {
+                if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+                    addTestResult('Marker Library', 'PASS', 'AdvancedMarkerElement available');
+                } else {
+                    addTestResult('Marker Library', 'WARN', 'AdvancedMarkerElement not available, using regular Marker');
+                }
+            } catch (error) {
+                addTestResult('Marker Library', 'FAIL', error.message);
+            }
+        }
+
+        // Load Google Maps API
+        function loadGoogleMaps() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,marker&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            
+            script.onerror = function() {
+                addStatus('❌ Failed to load Google Maps API script', 'error');
+                addTestResult('API Loading', 'FAIL', 'Script failed to load');
+            };
+            
+            script.onload = function() {
+                addStatus('✅ Google Maps API script loaded', 'success');
+                addTestResult('API Loading', 'PASS', 'Script loaded successfully');
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        // Check API key validity
+        if (!API_KEY || API_KEY === 'YOUR_API_KEY') {
+            addStatus('❌ No API key provided', 'error');
+        } else {
+            addStatus('🔑 API key detected', 'info');
+            loadGoogleMaps();
+        }
+
+        // Test all APIs after map loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (map) {
+                    testPlacesAPI();
+                    testDirectionsAPI();
+                    testMarkerLibrary();
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

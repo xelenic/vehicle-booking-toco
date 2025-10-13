@@ -93,58 +93,96 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Featured Image</label>
                             
-                            @if($blog->featured_image)
-                            <div class="mb-4">
-                                <img src="{{ $blog->featured_image_url }}" alt="Current featured image" class="w-full h-48 object-cover rounded-xl mb-2">
-                                <p class="text-sm text-gray-600">Current featured image</p>
+                            <div id="featured-image-preview" class="mb-4">
+                                @if($blog->media)
+                                    <div class="relative w-full h-48">
+                                        <img src="{{ $blog->media->url }}" alt="{{ $blog->media->name }}" class="w-full h-full object-cover rounded-xl">
+                                        <button type="button" onclick="removeSingleImage()" 
+                                                class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">{{ $blog->media->name }}</p>
+                                @elseif($blog->featured_image)
+                                    <div class="relative w-full h-48">
+                                        <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="Current featured image" class="w-full h-full object-cover rounded-xl">
+                                        <button type="button" onclick="removeSingleImage()" 
+                                                class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">Current featured image</p>
+                                @else
+                                    <div class="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center">
+                                        <span class="text-gray-500">No image selected</span>
+                                    </div>
+                                @endif
                             </div>
-                            @endif
                             
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors duration-200">
-                                <input type="file" id="featured_image" name="featured_image" accept="image/*" class="hidden" onchange="previewFeaturedImage(this)">
-                                <label for="featured_image" class="cursor-pointer">
-                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <p class="text-gray-600 mb-2">{{ $blog->featured_image ? 'Replace featured image' : 'Upload featured image' }}</p>
-                                    <p class="text-sm text-gray-500">PNG, JPG, GIF up to 2MB</p>
-                                </label>
+                            <div class="text-center">
+                                <button type="button" 
+                                        data-media-manager="true"
+                                        data-input-id="featured-image-input"
+                                        data-preview-id="featured-image-preview"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                    <i class="fas fa-image mr-2"></i>{{ $blog->media || $blog->featured_image ? 'Change Featured Image' : 'Choose Featured Image' }}
+                                </button>
                             </div>
-                            <div id="featured-preview" class="mt-4 hidden">
-                                <img id="featured-preview-img" src="" alt="Featured image preview" class="w-full h-48 object-cover rounded-xl">
-                            </div>
+                            
+                            <input type="hidden" id="featured-image-input" name="media_id" value="{{ old('media_id', $blog->media_id) }}">
                         </div>
                         
                         <!-- Gallery Images -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Gallery Images</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Gallery Images (Optional)</label>
                             
-                            @if($blog->gallery_images_url && count($blog->gallery_images_url) > 0)
-                            <div class="mb-4">
-                                <div class="grid grid-cols-2 gap-2 mb-2">
-                                    @foreach($blog->gallery_images_url as $image)
-                                    <img src="{{ $image }}" alt="Gallery image" class="w-full h-24 object-cover rounded-lg">
+                            <div id="gallery-images-input" data-name="gallery_images[]">
+                                @if($blog->gallery_images && count($blog->gallery_images) > 0)
+                                    @foreach($blog->gallery_images as $imageId)
+                                        <input type="hidden" name="gallery_images[]" value="{{ $imageId }}">
                                     @endforeach
-                                </div>
-                                <p class="text-sm text-gray-600">Current gallery images</p>
+                                @endif
                             </div>
-                            @endif
                             
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors duration-200">
-                                <input type="file" id="images" name="images[]" accept="image/*" multiple class="hidden" onchange="previewGalleryImages(this)">
-                                <label for="images" class="cursor-pointer">
-                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <p class="text-gray-600 mb-2">{{ ($blog->gallery_images_url && count($blog->gallery_images_url) > 0) ? 'Add more gallery images' : 'Upload gallery images' }}</p>
-                                    <p class="text-sm text-gray-500">Multiple images allowed</p>
-                                </label>
+                            <div id="gallery-images-preview" class="mb-4 grid grid-cols-2 gap-4">
+                                @if($blog->gallery_images && count($blog->gallery_images) > 0)
+                                    @foreach($blog->gallery_images as $imageId)
+                                        @php
+                                            $image = \App\Models\Media::find($imageId);
+                                        @endphp
+                                        @if($image)
+                                            <div class="relative">
+                                                <img src="{{ $image->url }}" alt="{{ $image->original_name }}" class="w-full h-24 object-cover rounded-lg" data-id="{{ $image->id }}">
+                                                <button type="button" onclick="removeGalleryImage(this)" 
+                                                        class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                @endif
                             </div>
-                            <div id="gallery-preview" class="mt-4 grid grid-cols-2 gap-2 hidden">
-                                <!-- Gallery preview images will be inserted here -->
+                            
+                            <div class="text-center">
+                                <button type="button" 
+                                        data-media-manager="true"
+                                        data-input-id="gallery-images-input"
+                                        data-preview-id="gallery-images-preview"
+                                        data-multiple="true"
+                                        data-max-selections="10"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                    <i class="fas fa-images mr-2"></i>Add Gallery Images
+                                </button>
                             </div>
                         </div>
                     </div>
+                    
+                    @error('media_id')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                    @error('gallery_images')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- SEO & Settings -->
@@ -201,36 +239,5 @@
                 </div>
             </form>
 
-<script>
-function previewFeaturedImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('featured-preview-img').src = e.target.result;
-            document.getElementById('featured-preview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function previewGalleryImages(input) {
-    const preview = document.getElementById('gallery-preview');
-    preview.innerHTML = '';
-    
-    if (input.files) {
-        Array.from(input.files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'w-full h-24 object-cover rounded-lg';
-                preview.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-        preview.classList.remove('hidden');
-    }
-}
-</script>
 @endsection
 
