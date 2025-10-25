@@ -24,6 +24,9 @@ Route::get('/packages', [HomeController::class, 'packages'])->name('packages');
 Route::get('/package/{slug}', [HomeController::class, 'packageDetails'])->name('package.details');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
+// Price calculation API
+Route::post('/api/calculate-price', [HomeController::class, 'calculatePrice'])->name('api.calculate-price');
+
 // About Routes
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 
@@ -38,7 +41,8 @@ Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.st
 
 // Vehicle Booking Routes
 Route::prefix('vehicle-booking')->group(function () {
-    Route::post('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price');
+    Route::get('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price');
+    Route::post('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price.post');
     Route::post('/create', [App\Http\Controllers\VehicleBookingController::class, 'createBooking'])->name('vehicle.booking.create');
     Route::get('/details/{bookingId}', [App\Http\Controllers\VehicleBookingController::class, 'getBookingDetails'])->name('vehicle.booking.details');
 });

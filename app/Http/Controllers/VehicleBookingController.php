@@ -31,7 +31,10 @@ class VehicleBookingController extends Controller
         $totalPrice = 0;
         $priceBreakdown = [];
 
-        if ($vehicle->pricing_type === 'standard') {
+        // Determine effective pricing type based on available pricing data
+        $effectivePricingType = $this->getEffectivePricingType($vehicle);
+        
+        if ($effectivePricingType === 'standard') {
             // Standard pricing: per km
             $totalPrice = $distance * $vehicle->per_km_price;
             $priceBreakdown = [
@@ -42,8 +45,8 @@ class VehicleBookingController extends Controller
             ];
         } else {
             // First KM + Per 100m pricing
-            $firstKmPrice = $vehicle->first_km_price;
-            $per100mPrice = $vehicle->per_100m_price;
+            $firstKmPrice = $vehicle->price_first_km;
+            $per100mPrice = $vehicle->price_per_100m_after;
             
             if ($distance <= 1) {
                 // Distance is 1km or less
@@ -76,19 +79,65 @@ class VehicleBookingController extends Controller
             }
         }
 
+        // Get location names for response
+        $pickupLocation = Location::findOrFail($request->pickup_location_id);
+        $destinationLocation = Location::findOrFail($request->destination_location_id);
+
         return response()->json([
             'success' => true,
-            'vehicle' => [
-                'id' => $vehicle->id,
-                'name' => $vehicle->name,
-                'type' => $vehicle->type,
-                'pax_count' => $vehicle->pax_count,
-                'pricing_type' => $vehicle->pricing_type
-            ],
-            'price_breakdown' => $priceBreakdown,
-            'total_price' => $totalPrice,
-            'formatted_price' => 'LKR ' . number_format($totalPrice, 2)
+            'data' => [
+                'total_price' => round($totalPrice, 2),
+                'formatted_price' => 'LKR ' . number_format($totalPrice, 2),
+                'distance' => round($distance, 2),
+                'vehicle_name' => $vehicle->name,
+                'vehicle_type' => ucfirst(str_replace('_', ' ', $vehicle->type)),
+                'pricing_type' => $effectivePricingType,
+                'price_breakdown' => $this->formatPriceBreakdown($priceBreakdown),
+                'pickup_location' => $pickupLocation->name,
+                'destination_location' => $destinationLocation->name,
+                'route_description' => $pickupLocation->name . ' → ' . $destinationLocation->name
+            ]
         ]);
+    }
+
+    /**
+     * Get effective pricing type based on available pricing data
+     */
+    private function getEffectivePricingType($vehicle)
+    {
+        // If per_km_price is available, use standard pricing
+        if ($vehicle->per_km_price && $vehicle->per_km_price > 0) {
+            return 'standard';
+        }
+        
+        // If first_km_price and per_100m_price are available, use first_km_meter pricing
+        if ($vehicle->price_first_km && $vehicle->price_per_100m_after && 
+            $vehicle->price_first_km > 0 && $vehicle->price_per_100m_after > 0) {
+            return 'first_km_meter';
+        }
+        
+        // Default to standard
+        return 'standard';
+    }
+
+    /**
+     * Format price breakdown for display
+     */
+    private function formatPriceBreakdown($priceBreakdown)
+    {
+        $formatted = [];
+        
+        if ($priceBreakdown['type'] === 'standard') {
+            $formatted[] = "Per km rate: LKR " . number_format($priceBreakdown['per_km_price'] ?? 0, 2);
+            $formatted[] = "Distance: " . number_format($priceBreakdown['distance_km'], 2) . "km";
+        } else {
+            $formatted[] = "First 1km: LKR " . number_format($priceBreakdown['first_km_price'] ?? 0, 2);
+            if (($priceBreakdown['additional_distance'] ?? 0) > 0) {
+                $formatted[] = "Additional " . number_format($priceBreakdown['additional_distance'], 2) . "km: LKR " . number_format($priceBreakdown['additional_price'] ?? 0, 2);
+            }
+        }
+        
+        return $formatted;
     }
 
     /**

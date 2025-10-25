@@ -814,7 +814,15 @@
                                 <select id="vehicle" name="vehicle" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
                                     <option value="">Select vehicle</option>
                                     @foreach($vehicles as $vehicle)
-                                        <option value="{{ $vehicle['id'] }}" data-pax="{{ $vehicle['pax_count'] }}">
+                                        <option value="{{ $vehicle['id'] }}" 
+                                                data-pax="{{ $vehicle['pax_count'] }}"
+                                                data-pricing-type="{{ $vehicle['effective_pricing_type'] }}"
+                                                data-per-km-price="{{ $vehicle['per_km_price'] }}"
+                                                data-first-km-price="{{ $vehicle['price_first_km'] }}"
+                                                data-per-100m-price="{{ $vehicle['price_per_100m_after'] }}"
+                                                data-formatted-per-km="{{ $vehicle['formatted_per_km_price'] }}"
+                                                data-formatted-first-km="{{ $vehicle['formatted_first_km_price'] }}"
+                                                data-formatted-per-100m="{{ $vehicle['formatted_per_100m_price'] }}">
                                             {{ $vehicle['name'] }} - {{ $vehicle['description'] }}
                                         </option>
                                     @endforeach
@@ -826,6 +834,21 @@
                                 <p class="text-xs text-gray-500 mt-1">Maximum capacity will be updated based on selected vehicle</p>
                                 <div id="vehicleInfo" class="text-sm text-gray-500 mt-1">Please select a vehicle to see passenger capacity</div>
                                 <div id="paxError" class="hidden text-sm text-red-600 mt-1"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Display Section -->
+                        <div id="priceDisplay" class="hidden bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-lg font-semibold text-gray-900">Estimated Price</h3>
+                                <div id="totalPrice" class="text-2xl font-bold text-green-600"></div>
+                            </div>
+                            <div id="priceBreakdown" class="text-sm text-gray-600 space-y-1"></div>
+                            <div class="mt-3 pt-3 border-t border-green-200">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span>Price calculated based on distance and selected vehicle</span>
+                                </div>
                             </div>
                         </div>
                         
@@ -1555,8 +1578,229 @@
         
         document.getElementById('routeInfo').classList.remove('hidden');
         
+        // Calculate and display price
+        calculatePrice(pickupLocation.id, destinationLocation.id, leg.distance.value);
+        
         // Show success notification
         showRouteNotification(`${travelMode.name} route calculated successfully!`, 'success');
+    }
+    
+    // Calculate price based on distance and selected vehicle
+    function calculatePrice(pickupLocationId, destinationLocationId, distanceInMeters) {
+        const vehicleSelect = document.getElementById('vehicle');
+        const selectedVehicleId = vehicleSelect.value;
+        
+        if (!selectedVehicleId) {
+            // Hide price display if no vehicle selected
+            document.getElementById('priceDisplay').classList.add('hidden');
+            return;
+        }
+        
+        // Convert meters to kilometers
+        const distanceInKm = distanceInMeters / 1000;
+        
+        // Store the distance for potential recalculation
+        window.lastCalculatedDistance = distanceInMeters;
+        
+        // Show loading state for price calculation
+        const priceDisplay = document.getElementById('priceDisplay');
+        priceDisplay.classList.remove('hidden');
+        priceDisplay.innerHTML = `
+            <div class="flex items-center justify-center py-4">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mr-3"></div>
+                <span class="text-gray-600 font-medium">Calculating price...</span>
+            </div>
+        `;
+        
+        // Make API request to calculate price using GET request
+        const params = new URLSearchParams({
+            pickup_location_id: pickupLocationId,
+            destination_location_id: destinationLocationId,
+            vehicle_id: selectedVehicleId,
+            distance: distanceInKm
+        });
+        
+        fetch(`/vehicle-booking/calculate-price?${params}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('Price calculation response:', data);
+            
+            if (data.success) {
+                displayPrice(data.data);
+            } else {
+                throw new Error(data.message || 'Failed to calculate price');
+            }
+        })
+        .catch(error => {
+            console.error('Price calculation error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                url: `/vehicle-booking/calculate-price?${params}`
+            });
+            
+            priceDisplay.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-red-600 mb-2">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600">Unable to calculate price</p>
+                    <p class="text-xs text-gray-500 mt-1">Error: ${error.message}</p>
+                    <p class="text-xs text-gray-500 mt-1">Please try again</p>
+                </div>
+            `;
+        });
+    }
+    
+    // Show vehicle pricing information when vehicle is selected
+    function showVehiclePricing(selectedOption) {
+        console.log('showVehiclePricing called with:', selectedOption);
+        
+        // Check if selectedOption exists
+        if (!selectedOption) {
+            console.error('selectedOption is null or undefined');
+            return;
+        }
+        
+        const vehicleId = selectedOption.value;
+        const vehicleName = selectedOption.textContent.split(' - ')[0];
+        
+        // Get pricing data from option attributes
+        const pricingType = selectedOption.getAttribute('data-pricing-type');
+        const perKmPrice = selectedOption.getAttribute('data-per-km-price');
+        const firstKmPrice = selectedOption.getAttribute('data-first-km-price');
+        const per100mPrice = selectedOption.getAttribute('data-per-100m-price');
+        
+        console.log('Vehicle pricing data:', {
+            vehicleId,
+            vehicleName,
+            pricingType,
+            perKmPrice,
+            firstKmPrice,
+            per100mPrice
+        });
+        
+        const priceDisplay = document.getElementById('priceDisplay');
+        
+        // Check if priceDisplay element exists
+        if (!priceDisplay) {
+            console.error('priceDisplay element not found');
+            return;
+        }
+        
+        priceDisplay.classList.remove('hidden');
+        
+        // Create pricing display based on vehicle pricing type
+        let pricingHtml = '';
+        
+        if (pricingType === 'first_km_meter') {
+            pricingHtml = `
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-gray-900">${vehicleName} Pricing</h3>
+                    <div class="text-sm text-gray-600">First KM + Per 100m</div>
+                </div>
+                <div class="text-sm text-gray-600 space-y-2">
+                    <div class="flex justify-between items-center bg-blue-50 p-2 rounded">
+                        <span class="font-medium">First 1km:</span>
+                        <span class="font-semibold text-blue-600">LKR ${parseFloat(firstKmPrice || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-green-50 p-2 rounded">
+                        <span class="font-medium">Per 100m after:</span>
+                        <span class="font-semibold text-green-600">LKR ${parseFloat(per100mPrice || 0).toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <div class="flex items-center text-xs text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span>Select pickup and destination to see total price</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            pricingHtml = `
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-gray-900">${vehicleName} Pricing</h3>
+                    <div class="text-sm text-gray-600">Per Kilometer</div>
+                </div>
+                <div class="text-sm text-gray-600 space-y-2">
+                    <div class="flex justify-between items-center bg-blue-50 p-2 rounded">
+                        <span class="font-medium">Per kilometer:</span>
+                        <span class="font-semibold text-blue-600">LKR ${parseFloat(perKmPrice || 0).toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <div class="flex items-center text-xs text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span>Select pickup and destination to see total price</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        priceDisplay.innerHTML = pricingHtml;
+        
+        // Add animation
+        priceDisplay.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            priceDisplay.style.transform = 'scale(1)';
+        }, 200);
+    }
+    
+    // Display calculated price
+    function displayPrice(priceData) {
+        const priceDisplay = document.getElementById('priceDisplay');
+        const totalPrice = document.getElementById('totalPrice');
+        const priceBreakdown = document.getElementById('priceBreakdown');
+        
+        // Check if priceDisplay element exists
+        if (!priceDisplay) {
+            console.error('priceDisplay element not found');
+            return;
+        }
+        
+        // Generate price breakdown HTML
+        const breakdownHtml = priceData.price_breakdown.map(item => 
+            `<div class="flex justify-between">
+                <span>${item}</span>
+            </div>`
+        ).join('');
+        
+        // Show the price display with animation
+        priceDisplay.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900">Estimated Price</h3>
+                <div class="text-2xl font-bold text-green-600">${priceData.formatted_price}</div>
+            </div>
+            <div class="text-sm text-gray-600 space-y-1">
+                ${breakdownHtml}
+            </div>
+            <div class="mt-3 pt-3 border-t border-green-200">
+                <div class="flex items-center text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <span>Price calculated based on distance and selected vehicle</span>
+                </div>
+            </div>
+        `;
+        
+        // Add success animation
+        priceDisplay.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            priceDisplay.style.transform = 'scale(1)';
+        }, 200);
     }
     
     // Display alternative routes
@@ -1867,9 +2111,15 @@
         // Hide route info
         document.getElementById('routeInfo').classList.add('hidden');
         
+        // Hide price display
+        document.getElementById('priceDisplay').classList.add('hidden');
+        
         // Reset form dropdowns
         document.getElementById('pickupLocation').value = '';
         document.getElementById('destinationLocation').value = '';
+        
+        // Clear stored distance
+        window.lastCalculatedDistance = null;
         
         // Reset to default view
         if (map) {
@@ -1883,6 +2133,9 @@
     
     // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
+        // Make vehicles data available to JavaScript
+        window.vehiclesData = @json($vehicles);
+        
         // Google Maps will initialize via callback
         
         // Set default date to today
@@ -1896,9 +2149,17 @@
         document.getElementById('pickupLocation').addEventListener('change', handleLocationChange);
         document.getElementById('destinationLocation').addEventListener('change', handleLocationChange);
         
-        // Handle vehicle selection to update passenger count limit
+        // Handle vehicle selection to update passenger count limit and show pricing
         document.getElementById('vehicle').addEventListener('change', function() {
+            console.log('Vehicle change event triggered');
             const selectedOption = this.options[this.selectedIndex];
+            console.log('Selected option:', selectedOption);
+            
+            if (!selectedOption) {
+                console.error('No option selected');
+                return;
+            }
+            
             const maxPax = selectedOption.getAttribute('data-pax');
             const paxInput = document.getElementById('paxCount');
             
@@ -1923,6 +2184,16 @@
                     vehicleInfo.textContent = `Maximum ${maxPax} passengers for selected vehicle`;
                     vehicleInfo.className = 'text-sm text-green-600 mt-1';
                 }
+                
+                // Show vehicle pricing information immediately
+                showVehiclePricing(selectedOption);
+                
+                // Recalculate price if route is already displayed
+                const pickupLocationId = document.getElementById('pickupLocation').value;
+                const destinationLocationId = document.getElementById('destinationLocation').value;
+                if (pickupLocationId && destinationLocationId && window.lastCalculatedDistance) {
+                    calculatePrice(pickupLocationId, destinationLocationId, window.lastCalculatedDistance);
+                }
             } else {
                 paxInput.max = 20;
                 paxInput.min = 1;
@@ -1935,6 +2206,9 @@
                     vehicleInfo.textContent = 'Please select a vehicle to see passenger capacity';
                     vehicleInfo.className = 'text-sm text-gray-500 mt-1';
                 }
+                
+                // Hide pricing when no vehicle selected
+                document.getElementById('priceDisplay').classList.add('hidden');
             }
         });
         
