@@ -22,7 +22,13 @@ class MyBookingsController extends Controller
     {
         $user = Auth::user();
         $bookings = Booking::where('user_id', $user->id)
-            ->with(['package', 'package.category', 'package.media'])
+            ->with([
+                'package.category',
+                'package.media',
+                'vehicle',
+                'pickupLocation',
+                'destinationLocation'
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

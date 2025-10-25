@@ -39,11 +39,15 @@ Route::get('/blog/search', [BlogController::class, 'search'])->name('blog.search
 // Booking Routes
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
+// User check API
+Route::get('/api/check-user', [HomeController::class, 'checkUser'])->name('api.check-user');
+
 // Vehicle Booking Routes
 Route::prefix('vehicle-booking')->group(function () {
     Route::get('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price');
     Route::post('/calculate-price', [App\Http\Controllers\VehicleBookingController::class, 'calculatePrice'])->name('vehicle.booking.calculate-price.post');
     Route::post('/create', [App\Http\Controllers\VehicleBookingController::class, 'createBooking'])->name('vehicle.booking.create');
+    Route::post('/submit', [App\Http\Controllers\VehicleBookingController::class, 'submit'])->name('vehicle.booking.submit');
     Route::get('/details/{bookingId}', [App\Http\Controllers\VehicleBookingController::class, 'getBookingDetails'])->name('vehicle.booking.details');
 });
 

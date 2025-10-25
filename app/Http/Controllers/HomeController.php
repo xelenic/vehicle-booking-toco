@@ -239,4 +239,24 @@ class HomeController extends Controller
         
         return $description;
     }
+
+    /**
+     * Check if user exists
+     */
+    public function checkUser(Request $request)
+    {
+        $email = $request->query('email');
+        
+        if (!$email) {
+            return response()->json([
+                'exists' => false
+            ]);
+        }
+        
+        $user = \App\Models\User::where('email', $email)->first();
+        
+        return response()->json([
+            'exists' => $user !== null
+        ]);
+    }
 }

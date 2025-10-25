@@ -6,7 +6,7 @@
 @section('content')
 <!-- Hero Section -->
 <section class="relative h-[40vh] flex items-center justify-center overflow-hidden pt-20">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ $booking->package->image_url }}');">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ $booking->package?->image_url ?? ($booking->vehicle?->image_url ?? 'https://images.unsplash.com/photo-1551632811-561732d7e918?w=1920') }}');">
         <div class="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-green-900/70"></div>
     </div>
     
@@ -17,7 +17,7 @@
                 <span class="gradient-text">Details</span>
             </h1>
             <p class="text-lg md:text-xl mb-6 opacity-90 animate-fade-in-delay">
-                Booking #{{ $booking->id }} - {{ $booking->package->title }}
+                Booking #{{ $booking->id }} - {{ $booking->package?->title ?? ($booking->vehicle?->name ?? 'Booking') }}
             </p>
         </div>
     </div>
@@ -30,6 +30,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-6">
+                    @if($booking->package)
                     <!-- Package Information -->
                     <div class="bg-white rounded-xl shadow-md overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-200">
@@ -37,16 +38,16 @@
                         </div>
                         <div class="p-6">
                             <div class="flex items-start space-x-4">
-                                <img src="{{ $booking->package->image_url }}" alt="{{ $booking->package->title }}" class="w-24 h-24 rounded-lg object-cover">
+                                <img src="{{ $booking->package->image_url ?? 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400' }}" alt="{{ $booking->package->title ?? 'Package' }}" class="w-24 h-24 rounded-lg object-cover">
                                 <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $booking->package->title }}</h3>
-                                    <p class="text-sm text-gray-600 mb-2">{{ $booking->package->category->name }}</p>
-                                    <p class="text-sm text-gray-600 mb-3">{{ Str::limit($booking->package->description, 150) }}</p>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $booking->package->title ?? 'Package' }}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">{{ $booking->package->category?->name ?? 'Category' }}</p>
+                                    <p class="text-sm text-gray-600 mb-3">{{ Str::limit($booking->package->description ?? '', 150) }}</p>
                                     <div class="flex items-center space-x-4 text-sm text-gray-500">
-                                        <span><i class="fas fa-clock mr-1"></i>{{ $booking->package->duration }}</span>
-                                        <span><i class="fas fa-users mr-1"></i>{{ $booking->package->group_size }}</span>
-                                        <span><i class="fas fa-signal mr-1"></i>{{ $booking->package->difficulty }}</span>
-                                        @if($booking->package->rating)
+                                        <span><i class="fas fa-clock mr-1"></i>{{ $booking->package->duration ?? 'N/A' }}</span>
+                                        <span><i class="fas fa-users mr-1"></i>{{ $booking->package->group_size ?? 'N/A' }}</span>
+                                        <span><i class="fas fa-signal mr-1"></i>{{ $booking->package->difficulty ?? 'N/A' }}</span>
+                                        @if($booking->package?->rating)
                                         <span><i class="fas fa-star mr-1 text-yellow-500"></i>{{ $booking->package->rating }}/5</span>
                                         @endif
                                     </div>
@@ -69,6 +70,33 @@
                             @endif
                         </div>
                     </div>
+                    @elseif($booking->vehicle)
+                    <!-- Vehicle Information -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-xl font-semibold text-gray-900">Vehicle Information</h2>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-start space-x-4">
+                                <img src="{{ $booking->vehicle->image_url ?? 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400' }}" alt="{{ $booking->vehicle->name ?? 'Vehicle' }}" class="w-24 h-24 rounded-lg object-cover">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $booking->vehicle->name ?? 'Vehicle' }}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">{{ ucfirst(str_replace('_', ' ', $booking->vehicle->type ?? 'vehicle')) }}</p>
+                                    <p class="text-sm text-gray-600 mb-3">{{ $booking->vehicle->description ?? 'Vehicle booking details' }}</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span><i class="fas fa-users mr-1"></i>{{ $booking->vehicle->pax_count ?? 'N/A' }} passengers</span>
+                                        @if($booking->pickupLocation && $booking->destinationLocation)
+                                        <span><i class="fas fa-route mr-1"></i>{{ $booking->pickupLocation->name }} → {{ $booking->destinationLocation->name }}</span>
+                                        @endif
+                                        @if($booking->distance)
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>{{ number_format($booking->distance, 2) }} km</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Booking Details -->
                     <div class="bg-white rounded-xl shadow-md">
@@ -78,31 +106,51 @@
                         <div class="p-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Travel Date</label>
-                                    <p class="text-sm text-gray-900">{{ $booking->travel_date->format('F d, Y') }}</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ $booking->pickup_date ? 'Pickup Date' : 'Travel Date' }}</label>
+                                    <p class="text-sm text-gray-900">{{ ($booking->pickup_date ?? $booking->travel_date)->format('F d, Y') }}</p>
                                 </div>
+                                @if($booking->pickup_time)
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of Travelers</label>
-                                    <p class="text-sm text-gray-900">{{ $booking->travelers }} {{ Str::plural('person', $booking->travelers) }}</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Time</label>
+                                    <p class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('g:i A') }}</p>
                                 </div>
+                                @endif
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of {{ $booking->vehicle ? 'Passengers' : 'Travelers' }}</label>
+                                    <p class="text-sm text-gray-900">{{ $booking->passengers ?? $booking->travelers ?? 1 }} {{ Str::plural('person', $booking->passengers ?? $booking->travelers ?? 1) }}</p>
+                                </div>
+                                @if($booking->package)
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Package Price</label>
-                                    <p class="text-sm text-gray-900">{{ $booking->package->formatted_price }} per person</p>
+                                    <p class="text-sm text-gray-900">{{ $booking->package->formatted_price ?? 'N/A' }} per person</p>
                                 </div>
+                                @endif
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
                                     <p class="text-lg font-semibold text-gray-900">{{ $booking->formatted_amount }}</p>
                                 </div>
+                                @if($booking->pickupLocation && $booking->destinationLocation)
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Route</label>
+                                    <p class="text-sm text-gray-900">{{ $booking->pickupLocation->name }} → {{ $booking->destinationLocation->name }}</p>
+                                </div>
+                                @endif
+                                @if($booking->distance)
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Distance</label>
+                                    <p class="text-sm text-gray-900">{{ number_format($booking->distance, 2) }} km</p>
+                                </div>
+                                @endif
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Special Requests</label>
-                                    <p class="text-sm text-gray-900">{{ $booking->special_requests ?: 'No special requests' }}</p>
+                                    <p class="text-sm text-gray-900">{{ $booking->special_requirements ?? $booking->special_requests ?: 'No special requests' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Itinerary Information -->
-                    @if($booking->package->itinerary)
+                    @if($booking->package && $booking->package->itinerary)
                     <div class="bg-white rounded-xl shadow-md">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-900">Tour Itinerary</h2>
@@ -116,7 +164,7 @@
                     @endif
 
                     <!-- What's Included -->
-                    @if($booking->package->included || $booking->package->not_included)
+                    @if($booking->package && ($booking->package->included || $booking->package->not_included))
                     <div class="bg-white rounded-xl shadow-md">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-900">What's Included</h2>
@@ -279,7 +327,7 @@
                                 <p class="text-sm text-gray-600">{{ $booking->created_at->format('F d, Y \a\t g:i A') }}</p>
                             </div>
                             
-                            @if($booking->package->requirements)
+                            @if($booking->package && $booking->package->requirements)
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-900 mb-2">Requirements</h4>
                                 <div class="text-sm text-gray-600">
@@ -291,7 +339,7 @@
                     </div>
 
                     <!-- Cancellation Policy -->
-                    @if($booking->package->cancellation_policy)
+                    @if($booking->package && $booking->package->cancellation_policy)
                     <div class="bg-white rounded-xl shadow-md">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-gray-900">Cancellation Policy</h3>

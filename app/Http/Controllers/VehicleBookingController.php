@@ -262,4 +262,183 @@ class VehicleBookingController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Submit booking order
+     */
+    public function submit(Request $request)
+    {
+        try {
+            $request->validate([
+                'pickupLocation' => 'required|string',
+                'destinationLocation' => 'required|string',
+                'pickupDate' => 'required|date',
+                'pickupTime' => 'required|string',
+                'vehicle' => 'required|string',
+                'vehicleId' => 'required|exists:vehicles,id',
+                'passengers' => 'required|integer|min:1',
+                'locationIds.pickup' => 'required|exists:locations,id',
+                'locationIds.destination' => 'required|exists:locations,id',
+                'customerDetails.fullName' => 'required|string|max:255',
+                'customerDetails.email' => 'required|email|max:255',
+                'customerDetails.phone' => 'required|string|max:20',
+                'customerDetails.password' => 'nullable|string|min:6',
+                'customerDetails.specialRequirements' => 'nullable|string'
+            ]);
+
+            // Check if user is authenticated
+            $user = Auth::user();
+            
+            // If not authenticated, check if user exists
+            if (!$user) {
+                $user = User::where('email', $request->customerDetails['email'])->first();
+                
+                if ($user) {
+                    // Existing user - verify password
+                    if (!empty($request->customerDetails['password'])) {
+                        if (Hash::check($request->customerDetails['password'], $user->password)) {
+                            // Password matches, log in the user
+                            Auth::login($user);
+                        } else {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Incorrect password. Please try again.'
+                            ], 401);
+                        }
+                    } else {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Password required for existing user.'
+                        ], 401);
+                    }
+                } else {
+                    // New user - create account
+                    if (empty($request->customerDetails['password'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Password required to create a new account.'
+                        ], 422);
+                    }
+                    
+                    $user = User::create([
+                        'name' => $request->customerDetails['fullName'],
+                        'email' => $request->customerDetails['email'],
+                        'password' => Hash::make($request->customerDetails['password']),
+                    ]);
+                    
+                    // Log in the newly created user
+                    Auth::login($user);
+                }
+            }
+
+            // Get locations
+            $pickupLocation = Location::findOrFail($request->locationIds['pickup']);
+            $destinationLocation = Location::findOrFail($request->locationIds['destination']);
+            
+            // Get vehicle
+            $vehicle = Vehicle::findOrFail($request->vehicleId);
+            
+            // Calculate distance (you might want to calculate this based on coordinates)
+            // For now, we'll use a default value or calculate from locations
+            $distance = $this->calculateDistance(
+                $pickupLocation->latitude,
+                $pickupLocation->longitude,
+                $destinationLocation->latitude,
+                $destinationLocation->longitude
+            );
+            
+            // Calculate total price
+            $totalPrice = 0;
+            $effectivePricingType = $this->getEffectivePricingType($vehicle);
+            
+            if ($effectivePricingType === 'standard') {
+                $totalPrice = $distance * $vehicle->per_km_price;
+            } else {
+                $firstKmPrice = $vehicle->price_first_km;
+                $per100mPrice = $vehicle->price_per_100m_after;
+                
+                if ($distance <= 1) {
+                    $totalPrice = $firstKmPrice;
+                } else {
+                    $additionalDistance = $distance - 1;
+                    $additionalDistanceMeters = $additionalDistance * 1000;
+                    $additionalPrice = ceil($additionalDistanceMeters / 100) * $per100mPrice;
+                    $totalPrice = $firstKmPrice + $additionalPrice;
+                }
+            }
+
+            // Create booking
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'vehicle_id' => $vehicle->id,
+                'pickup_location_id' => $pickupLocation->id,
+                'destination_location_id' => $destinationLocation->id,
+                'pickup_date' => $request->pickupDate,
+                'pickup_time' => $request->pickupTime,
+                'travel_date' => $request->pickupDate,
+                'passengers' => $request->passengers,
+                'full_name' => $request->customerDetails['fullName'],
+                'email' => $request->customerDetails['email'],
+                'phone' => $request->customerDetails['phone'],
+                'distance' => round($distance, 2),
+                'total_amount' => round($totalPrice, 2),
+                'special_requirements' => $request->customerDetails['specialRequirements'] ?? null,
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'booking_type' => 'vehicle'
+            ]);
+
+            Log::info('Booking created successfully', [
+                'booking_id' => $booking->id,
+                'user_id' => $user->id,
+                'vehicle_id' => $vehicle->id,
+                'total_amount' => $totalPrice
+            ]);
+
+            // Generate payment URL for PayHere
+            $paymentUrl = route('payhere.initialize', ['booking_id' => $booking->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking submitted successfully! Redirecting to payment...',
+                'booking' => [
+                    'id' => $booking->id,
+                    'reference_number' => 'BK-' . str_pad($booking->id, 6, '0', STR_PAD_LEFT),
+                    'total_amount' => round($totalPrice, 2),
+                    'formatted_price' => 'LKR ' . number_format($totalPrice, 2)
+                ],
+                'payment_url' => $paymentUrl
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error creating booking', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit booking. Please try again or contact support.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Calculate distance between two coordinates using Haversine formula
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+        
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLon / 2) * sin($dLon / 2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        
+        return $earthRadius * $c; // Distance in kilometers
+    }
 }

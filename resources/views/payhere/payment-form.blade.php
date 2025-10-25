@@ -18,12 +18,28 @@
                 
                 <div class="space-y-4">
                     <div class="flex items-center space-x-4">
-                        <img src="{{ $booking->package->image_url }}" alt="{{ $booking->package->title }}" 
-                             class="w-16 h-16 rounded-lg object-cover">
-                        <div>
-                            <h3 class="font-semibold text-gray-900">{{ $booking->package->title }}</h3>
-                            <p class="text-sm text-gray-600">{{ $booking->package->duration }}</p>
-                        </div>
+                        @if($booking->package)
+                            <img src="{{ $booking->package->image_url ?? asset('images/default-package.jpg') }}" alt="{{ $booking->package->title ?? 'Package' }}" 
+                                 class="w-16 h-16 rounded-lg object-cover">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ $booking->package->title ?? 'Package' }}</h3>
+                                <p class="text-sm text-gray-600">{{ $booking->package->duration ?? 'N/A' }}</p>
+                            </div>
+                        @elseif($booking->vehicle)
+                            <img src="{{ asset('images/default-vehicle.jpg') }}" alt="{{ $booking->vehicle->name ?? 'Vehicle' }}" 
+                                 class="w-16 h-16 rounded-lg object-cover">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ $booking->vehicle->name ?? 'Vehicle' }}</h3>
+                                <p class="text-sm text-gray-600">Vehicle Booking</p>
+                            </div>
+                        @else
+                            <img src="{{ asset('images/default-booking.jpg') }}" alt="Booking" 
+                                 class="w-16 h-16 rounded-lg object-cover">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Booking #{{ $booking->id }}</h3>
+                                <p class="text-sm text-gray-600">{{ ucfirst($booking->booking_type ?? 'booking') }}</p>
+                            </div>
+                        @endif
                     </div>
                     
                     <div class="border-t pt-4 space-y-2">
@@ -31,14 +47,27 @@
                             <span class="text-gray-600">Travel Date:</span>
                             <span class="font-semibold">{{ $booking->travel_date->format('M d, Y') }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Travelers:</span>
-                            <span class="font-semibold">{{ $booking->travelers }} {{ $booking->travelers == 1 ? 'Person' : 'People' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Package Price:</span>
-                            <span class="font-semibold">{{ $booking->package->formatted_price }}</span>
-                        </div>
+                        @if($booking->package)
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Travelers:</span>
+                                <span class="font-semibold">{{ $booking->travelers ?? 1 }} {{ ($booking->travelers ?? 1) == 1 ? 'Person' : 'People' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Package Price:</span>
+                                <span class="font-semibold">{{ $booking->package->formatted_price ?? 'N/A' }}</span>
+                            </div>
+                        @elseif($booking->vehicle)
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Passengers:</span>
+                                <span class="font-semibold">{{ $booking->passengers ?? 1 }} {{ ($booking->passengers ?? 1) == 1 ? 'Person' : 'People' }}</span>
+                            </div>
+                            @if($booking->distance)
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Distance:</span>
+                                <span class="font-semibold">{{ number_format($booking->distance, 2) }} km</span>
+                            </div>
+                            @endif
+                        @endif
                         <div class="flex justify-between text-lg font-bold border-t pt-2">
                             <span>Total Amount:</span>
                             <span class="text-blue-600">{{ $booking->formatted_amount }}</span>
@@ -123,13 +152,31 @@
 
         <!-- Back Button -->
         <div class="text-center mt-8">
-            <a href="{{ route('package.details', $booking->package->slug) }}" 
-               class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors duration-300">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                Back to Package Details
-            </a>
+            @if($booking->package)
+                <a href="{{ route('package.details', $booking->package->slug) }}" 
+                   class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Package Details
+                </a>
+            @elseif($booking->vehicle)
+                <a href="{{ route('home') }}#booking" 
+                   class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Home
+                </a>
+            @else
+                <a href="{{ route('home') }}" 
+                   class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Home
+                </a>
+            @endif
         </div>
     </div>
 </div>

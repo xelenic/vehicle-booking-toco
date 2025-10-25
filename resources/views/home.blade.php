@@ -558,6 +558,214 @@
     </div>
 </section>
 
+<!-- Booking Section -->
+<section id="booking" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 playfair mb-6">
+                    Plan Your
+                    <span class="gradient-text">Adventure</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Choose your pickup location, destination, and let us show you the perfect route to your Sri Lankan adventure.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Booking Form -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <form id="bookingForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="pickupLocation" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Location</label>
+                                <select id="pickupLocation" name="pickupLocation" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                    <option value="">Select pickup location</option>
+                                    @foreach($locations as $location)
+                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label for="destinationLocation" class="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
+                                <select id="destinationLocation" name="destinationLocation" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                    <option value="">Select destination</option>
+                                    @foreach($locations as $location)
+                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="pickupDate" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Date</label>
+                                <input type="date" id="pickupDate" name="pickupDate" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                            </div>
+                            <div>
+                                <label for="pickupTime" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Time</label>
+                                <input type="time" id="pickupTime" name="pickupTime" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="vehicle" class="block text-sm font-semibold text-gray-700 mb-2">Vehicle</label>
+                                <select id="vehicle" name="vehicle" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                    <option value="">Select vehicle</option>
+                                    @foreach($vehicles as $vehicle)
+                                        <option value="{{ $vehicle['id'] }}" 
+                                                data-pax="{{ $vehicle['pax_count'] }}"
+                                                data-pricing-type="{{ $vehicle['effective_pricing_type'] }}"
+                                                data-per-km-price="{{ $vehicle['per_km_price'] }}"
+                                                data-first-km-price="{{ $vehicle['price_first_km'] }}"
+                                                data-per-100m-price="{{ $vehicle['price_per_100m_after'] }}">
+                                            {{ $vehicle['name'] }} - {{ $vehicle['description'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label for="paxCount" class="block text-sm font-semibold text-gray-700 mb-2">Number of Passengers</label>
+                                <input type="number" id="paxCount" name="paxCount" min="1" max="20" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <p class="text-xs text-gray-500 mt-1">Maximum capacity will be updated based on selected vehicle</p>
+                                <div id="vehicleInfo" class="text-sm text-gray-500 mt-1">Please select a vehicle to see passenger capacity</div>
+                                <div id="paxError" class="hidden text-sm text-red-600 mt-1"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Display Section -->
+                        <div id="priceDisplay" class="hidden bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-lg font-semibold text-gray-900">Estimated Price</h3>
+                                <div id="totalPrice" class="text-2xl font-bold text-green-600"></div>
+                            </div>
+                            <div id="priceBreakdown" class="text-sm text-gray-600 space-y-1"></div>
+                            <div class="mt-3 pt-3 border-t border-green-200">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span>Price calculated based on distance and selected vehicle</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg mb-3">
+                            Plan My Journey
+                        </button>
+                        
+                        <button type="button" onclick="clearRoute()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-all duration-300">
+                            <i class="fas fa-times mr-2"></i>Clear Route
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Map Container -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <div id="mapContainer" class="relative">
+                        <div id="map" style="height: 500px; width: 100%; border-radius: 12px; overflow: hidden;"></div>
+                        
+                        <!-- Enhanced Map Legend -->
+                        <div class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 z-10 border border-gray-200">
+                            <h4 class="font-semibold text-gray-900 mb-3 text-sm flex items-center">
+                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                                Map Legend
+                            </h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-red-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-map-marker-alt text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Pickup Point</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-500 rounded-lg mr-2 flex items-center justify-center">
+                                        <i class="fas fa-home text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Destination</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-circle text-white text-xs"></i>
+                                </div>
+                                    <span class="font-medium">Route Waypoint</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
+                                    <span class="font-medium">Available Locations</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-1 bg-blue-500 mr-2" style="border-radius: 2px;"></div>
+                                    <span class="font-medium">Primary Route</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-1 bg-green-500 mr-2" style="border-radius: 2px; border: 1px dashed #34a853;"></div>
+                                    <span class="font-medium">Alternative Routes</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-3 bg-white border border-gray-200 rounded mr-2 flex items-center justify-center">
+                                        <i class="fas fa-car text-blue-500 text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Route Info</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-purple-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-camera text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Tourist Attractions</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-mountain text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Mountain Peaks</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2 flex items-center justify-center">
+                                        <i class="fas fa-suitcase text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Travel Hubs</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="routeInfo" class="mt-4 p-5 bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 rounded-xl shadow-lg border border-blue-200 hidden animate-fade-in">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                                    <i class="fas fa-route text-blue-600 mr-2"></i>
+                                    Route Information
+                                </h3>
+                                <button onclick="document.getElementById('routeInfo').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors duration-300">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                                            <i class="fas fa-route text-white text-sm"></i>
+                                        </div>
+                                        <span class="font-semibold text-gray-900">Distance</span>
+                                    </div>
+                                    <div id="distanceInfo" class="text-base font-bold text-blue-600 mt-1"></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-green-100 hover:shadow-md transition-shadow duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-2">
+                                            <i class="fas fa-clock text-white text-sm"></i>
+                                        </div>
+                                        <span class="font-semibold text-gray-900">Travel Time</span>
+                                    </div>
+                                    <div id="timeInfo" class="text-base font-bold text-green-600 mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Featured Packages Section -->
 <section id="packages" class="py-12 bg-white">
     <div class="container mx-auto px-6">
@@ -758,211 +966,6 @@
     </div>
 </section>
 
-<!-- Booking Section -->
-<section id="booking" class="py-20 bg-gray-50">
-    <div class="container mx-auto px-6">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 playfair mb-6">
-                    Plan Your
-                    <span class="gradient-text">Adventure</span>
-                </h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Choose your pickup location, destination, and let us show you the perfect route to your Sri Lankan adventure.
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <!-- Booking Form -->
-                <div class="bg-white rounded-2xl shadow-xl p-8">
-                    <form id="bookingForm" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="pickupLocation" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Location</label>
-                                <select id="pickupLocation" name="pickupLocation" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                                    <option value="">Select pickup location</option>
-                                    @foreach($locations as $location)
-                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="destinationLocation" class="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
-                                <select id="destinationLocation" name="destinationLocation" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                                    <option value="">Select destination</option>
-                                    @foreach($locations as $location)
-                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="pickupDate" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Date</label>
-                                <input type="date" id="pickupDate" name="pickupDate" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                            </div>
-                            <div>
-                                <label for="pickupTime" class="block text-sm font-semibold text-gray-700 mb-2">Pickup Time</label>
-                                <input type="time" id="pickupTime" name="pickupTime" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="vehicle" class="block text-sm font-semibold text-gray-700 mb-2">Vehicle</label>
-                                <select id="vehicle" name="vehicle" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                                    <option value="">Select vehicle</option>
-                                    @foreach($vehicles as $vehicle)
-                                        <option value="{{ $vehicle['id'] }}" 
-                                                data-pax="{{ $vehicle['pax_count'] }}"
-                                                data-pricing-type="{{ $vehicle['effective_pricing_type'] }}"
-                                                data-per-km-price="{{ $vehicle['per_km_price'] }}"
-                                                data-first-km-price="{{ $vehicle['price_first_km'] }}"
-                                                data-per-100m-price="{{ $vehicle['price_per_100m_after'] }}"
-                                                data-formatted-per-km="{{ $vehicle['formatted_per_km_price'] }}"
-                                                data-formatted-first-km="{{ $vehicle['formatted_first_km_price'] }}"
-                                                data-formatted-per-100m="{{ $vehicle['formatted_per_100m_price'] }}">
-                                            {{ $vehicle['name'] }} - {{ $vehicle['description'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="paxCount" class="block text-sm font-semibold text-gray-700 mb-2">Number of Passengers</label>
-                                <input type="number" id="paxCount" name="paxCount" min="1" max="20" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                                <p class="text-xs text-gray-500 mt-1">Maximum capacity will be updated based on selected vehicle</p>
-                                <div id="vehicleInfo" class="text-sm text-gray-500 mt-1">Please select a vehicle to see passenger capacity</div>
-                                <div id="paxError" class="hidden text-sm text-red-600 mt-1"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Price Display Section -->
-                        <div id="priceDisplay" class="hidden bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-lg font-semibold text-gray-900">Estimated Price</h3>
-                                <div id="totalPrice" class="text-2xl font-bold text-green-600"></div>
-                            </div>
-                            <div id="priceBreakdown" class="text-sm text-gray-600 space-y-1"></div>
-                            <div class="mt-3 pt-3 border-t border-green-200">
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    <span>Price calculated based on distance and selected vehicle</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg mb-3">
-                            Plan My Journey
-                        </button>
-                        
-                        <button type="button" onclick="clearRoute()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-all duration-300">
-                            <i class="fas fa-times mr-2"></i>Clear Route
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Map Container -->
-                <div class="bg-white rounded-2xl shadow-xl p-8">
-                    <div id="mapContainer" class="relative">
-                        <div id="map" style="height: 500px; width: 100%; border-radius: 12px; overflow: hidden;"></div>
-                        
-                        <!-- Enhanced Map Legend -->
-                        <div class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 z-10 border border-gray-200">
-                            <h4 class="font-semibold text-gray-900 mb-3 text-sm flex items-center">
-                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                Map Legend
-                            </h4>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                                        <i class="fas fa-map-marker-alt text-white text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Pickup Point</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-blue-500 rounded-lg mr-2 flex items-center justify-center">
-                                        <i class="fas fa-home text-white text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Destination</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2 flex items-center justify-center">
-                                        <i class="fas fa-circle text-white text-xs"></i>
-                                </div>
-                                    <span class="font-medium">Route Waypoint</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
-                                    <span class="font-medium">Available Locations</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-1 bg-blue-500 mr-2" style="border-radius: 2px;"></div>
-                                    <span class="font-medium">Primary Route</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-1 bg-green-500 mr-2" style="border-radius: 2px; border: 1px dashed #34a853;"></div>
-                                    <span class="font-medium">Alternative Routes</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-3 bg-white border border-gray-200 rounded mr-2 flex items-center justify-center">
-                                        <i class="fas fa-car text-blue-500 text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Route Info</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-purple-500 rounded-full mr-2 flex items-center justify-center">
-                                        <i class="fas fa-camera text-white text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Tourist Attractions</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2 flex items-center justify-center">
-                                        <i class="fas fa-mountain text-white text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Mountain Peaks</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2 flex items-center justify-center">
-                                        <i class="fas fa-suitcase text-white text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Travel Hubs</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div id="routeInfo" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
-                            <h3 class="font-semibold text-gray-900 mb-3">Route Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-white p-3 rounded-lg">
-                                    <div class="flex items-center mb-2">
-                                        <i class="fas fa-route text-blue-500 mr-2"></i>
-                                        <span class="font-medium text-gray-900">Distance</span>
-                                    </div>
-                                    <div id="distanceInfo" class="text-sm text-gray-600"></div>
-                                </div>
-                                <div class="bg-white p-3 rounded-lg">
-                                    <div class="flex items-center mb-2">
-                                        <i class="fas fa-clock text-green-500 mr-2"></i>
-                                        <span class="font-medium text-gray-900">Travel Time</span>
-                                    </div>
-                                    <div id="timeInfo" class="text-sm text-gray-600"></div>
-                                </div>
-                            </div>
-                            <div class="mt-3 p-3 bg-blue-50 rounded-lg">
-                                <div class="flex items-center mb-1">
-                                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                    <span class="font-medium text-blue-900">Route Details</span>
-                                </div>
-                                <div id="routeDetails" class="text-sm text-blue-800"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- Reviews Section -->
 <section class="py-12 bg-white">
@@ -1192,6 +1195,133 @@
         </div>
     </div>
 </section>
+
+<!-- Booking Modal -->
+<div id="bookingModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold">Complete Your Booking</h2>
+                    <p class="text-sm opacity-90 mt-1">Provide your details to confirm your travel order</p>
+                </div>
+                <button onclick="closeBookingModal()" class="text-white hover:text-gray-200 transition-colors duration-300 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <!-- Booking Summary -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-2">Booking Summary</h3>
+                <div id="bookingSummary" class="text-sm text-gray-600 space-y-1">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <form id="finalBookingForm" class="space-y-4">
+                @auth
+                <!-- Logged-in user fields (pre-filled and read-only) -->
+                <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-user-circle text-blue-600 mr-2"></i>
+                        <span class="text-sm font-medium text-blue-600">You are logged in as: {{ Auth::user()->email }}</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="fullName" name="fullName" value="{{ Auth::user()->name }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" readonly>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Email Address <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" value="{{ Auth::user()->email }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50" readonly>
+                    </div>
+                </div>
+                <div>
+                    <label for="phoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Phone Number <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="hidden" name="password" value="">
+                </div>
+                @else
+                <!-- Guest user fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="fullName" name="fullName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Email Address <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="phoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Phone Number <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div id="loginSection">
+                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <input type="password" id="password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p id="passwordHint" class="text-xs text-gray-500 mt-1">Enter your password to login (if existing user) or create a new password (if new user)</p>
+                        <div id="userStatus" class="mt-2 hidden">
+                            <span id="userStatusText" class="text-sm font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+                @endauth
+
+                <div>
+                    <label for="specialRequirements" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Special Requirements or Notes
+                    </label>
+                    <textarea id="specialRequirements" name="specialRequirements" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Any special requirements, dietary restrictions, accessibility needs, etc."></textarea>
+                </div>
+
+                <div class="flex items-center pt-4">
+                    <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <label for="terms" class="ml-2 text-sm text-gray-600">
+                        I agree to the <a href="/terms" class="text-blue-600 hover:underline">Terms and Conditions</a> and <a href="/privacy" class="text-blue-600 hover:underline">Privacy Policy</a>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-gray-200 p-6 bg-gray-50 rounded-b-2xl">
+            <div class="flex justify-between items-center">
+                <button onclick="closeBookingModal()" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300">
+                    Cancel
+                </button>
+                <button onclick="submitFinalBooking()" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
+                    Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('styles')
@@ -1576,6 +1706,7 @@
             routeDetails.innerHTML = routeDetailsHtml;
         }
         
+        // Show Route Details section
         document.getElementById('routeInfo').classList.remove('hidden');
         
         // Calculate and display price
@@ -2319,10 +2450,23 @@
                 // Get vehicle name for display
                 const vehicleName = selectedOption.textContent;
                 
-                alert(`Booking request submitted!\n\nPickup: ${data.pickupLocation}\nDestination: ${data.destinationLocation}\nDate: ${data.pickupDate}\nTime: ${data.pickupTime}\nVehicle: ${vehicleName}\nPassengers: ${data.paxCount}`);
+                // Prepare booking data
+                const bookingData = {
+                    pickupLocation: data.pickupLocation,
+                    destinationLocation: data.destinationLocation,
+                    pickupDate: data.pickupDate,
+                    pickupTime: data.pickupTime,
+                    vehicle: vehicleName,
+                    vehicleId: data.vehicle,
+                    passengers: data.paxCount,
+                    locationIds: {
+                        pickup: data.pickupLocation,
+                        destination: data.destinationLocation
+                    }
+                };
                 
-                // Reset form
-                this.reset();
+                // Show booking modal instead of alert
+                showBookingModal(bookingData);
                 document.getElementById('pickupDate').value = today;
                 document.getElementById('pickupTime').value = '08:00';
                 document.getElementById('routeInfo').classList.add('hidden');
@@ -2344,6 +2488,236 @@
             }
         });
     });
+    
+    // ==============================================
+    // BOOKING MODAL FUNCTIONS
+    // ==============================================
+    
+    // Store booking data globally
+    window.currentBookingData = null;
+    
+    // Show booking modal with booking data
+    function showBookingModal(bookingData) {
+        console.log('Showing booking modal with data:', bookingData);
+        
+        // Store booking data globally
+        window.currentBookingData = bookingData;
+        
+        // Get modal element
+        const modal = document.getElementById('bookingModal');
+        
+        if (!modal) {
+            console.error('Booking modal not found');
+            return;
+        }
+        
+        // Populate booking summary
+        const summary = document.getElementById('bookingSummary');
+        if (summary) {
+            summary.innerHTML = `
+                <div><strong>Route:</strong> ${bookingData.pickupLocation} → ${bookingData.destinationLocation}</div>
+                <div><strong>Date & Time:</strong> ${bookingData.pickupDate} at ${bookingData.pickupTime}</div>
+                <div><strong>Vehicle:</strong> ${bookingData.vehicle}</div>
+                <div><strong>Passengers:</strong> ${bookingData.passengers}</div>
+            `;
+        }
+        
+        // Show modal with animation
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Focus on first input
+        setTimeout(() => {
+            const firstInput = document.getElementById('fullName');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 100);
+    }
+    
+    // Close booking modal
+    function closeBookingModal() {
+        const modal = document.getElementById('bookingModal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            window.currentBookingData = null;
+        }
+    }
+    
+    // Submit final booking
+    async function submitFinalBooking() {
+        console.log('Submitting final booking...');
+        
+        if (!window.currentBookingData) {
+            console.error('No booking data available');
+            showRouteNotification('Error: Booking data not found. Please try again.', 'error');
+            return;
+        }
+        
+        // Get form data
+        const form = document.getElementById('finalBookingForm');
+        if (!form) {
+            console.error('Final booking form not found');
+            return;
+        }
+        
+        const formData = new FormData(form);
+        const bookingDetails = Object.fromEntries(formData);
+        
+        // Check if terms are accepted
+        if (!document.getElementById('terms').checked) {
+            showRouteNotification('Please accept the terms and conditions to proceed.', 'error');
+            return;
+        }
+        
+        // Combine booking data
+        const completeBookingData = {
+            ...window.currentBookingData,
+            customerDetails: {
+                fullName: bookingDetails.fullName,
+                email: bookingDetails.email,
+                phone: bookingDetails.phoneNumber,
+                password: bookingDetails.password,
+                specialRequirements: bookingDetails.specialRequirements
+            }
+        };
+        
+        console.log('Complete booking data:', completeBookingData);
+        
+        // Show loading state
+        const submitButton = event.target;
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+        
+        try {
+            // Submit booking to backend
+            const response = await fetch('/vehicle-booking/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(completeBookingData)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Success!
+                showRouteNotification('Booking submitted successfully! Redirecting to payment...', 'success');
+                
+                // Close modal
+                closeBookingModal();
+                
+                // Redirect to payment gateway
+                if (data.payment_url) {
+                    setTimeout(() => {
+                        window.location.href = data.payment_url;
+                    }, 1000);
+                } else {
+                    // Fallback: reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            } else {
+                // Error from server
+                throw new Error(data.message || 'Failed to submit booking');
+            }
+        } catch (error) {
+            console.error('Error submitting booking:', error);
+            showRouteNotification('Error: ' + error.message + '. Please try again.', 'error');
+        } finally {
+            // Restore button
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+        }
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('bookingModal');
+        if (event.target === modal) {
+            closeBookingModal();
+        }
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeBookingModal();
+        }
+    });
+    
+    // Check if user exists when email is entered
+    async function checkUserExists(email) {
+        if (!email) {
+            hideUserStatus();
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/check-user?email=${encodeURIComponent(email)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.exists) {
+                showUserStatus('Existing user - enter your password to login', 'blue');
+            } else {
+                showUserStatus('New user - create a password', 'green');
+            }
+        } catch (error) {
+            console.error('Error checking user:', error);
+            hideUserStatus();
+        }
+    }
+    
+    // Show user status message
+    function showUserStatus(message, color) {
+        const statusDiv = document.getElementById('userStatus');
+        const statusText = document.getElementById('userStatusText');
+        
+        if (statusDiv && statusText) {
+            statusDiv.classList.remove('hidden');
+            statusText.textContent = message;
+            statusText.className = `text-sm font-medium text-${color}-600`;
+        }
+    }
+    
+    // Hide user status message
+    function hideUserStatus() {
+        const statusDiv = document.getElementById('userStatus');
+        if (statusDiv) {
+            statusDiv.classList.add('hidden');
+        }
+    }
+    
+    // Add email change listener to check user existence
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            emailInput.addEventListener('blur', function() {
+                const email = this.value.trim();
+                if (email && email.includes('@')) {
+                    checkUserExists(email);
+                } else {
+                    hideUserStatus();
+                }
+            });
+        }
+    });
+    
+    // ==============================================
+    // END BOOKING MODAL FUNCTIONS
+    // ==============================================
     
     // Initialize Swiper
     function initializeSwiper() {

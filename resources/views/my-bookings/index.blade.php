@@ -109,17 +109,37 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-12 w-12">
-                                                <img class="h-12 w-12 rounded-lg object-cover" src="{{ $booking->package->image_url }}" alt="{{ $booking->package->title }}">
+                                                @if($booking->package)
+                                                    <img class="h-12 w-12 rounded-lg object-cover" src="{{ $booking->package->image_url ?? 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400' }}" alt="{{ $booking->package->title ?? 'Package' }}">
+                                                @elseif($booking->vehicle)
+                                                    <img class="h-12 w-12 rounded-lg object-cover" src="{{ $booking->vehicle->image_url ?? 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400' }}" alt="{{ $booking->vehicle->name ?? 'Vehicle' }}">
+                                                @else
+                                                    <img class="h-12 w-12 rounded-lg object-cover" src="https://images.unsplash.com/photo-1551632811-561732d7e918?w=400" alt="Booking">
+                                                @endif
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $booking->package->title }}</div>
-                                                <div class="text-sm text-gray-500">{{ $booking->package->category->name }}</div>
+                                                @if($booking->package)
+                                                    <div class="text-sm font-medium text-gray-900">{{ $booking->package->title ?? 'Package' }}</div>
+                                                    <div class="text-sm text-gray-500">{{ $booking->package->category->name ?? 'Category' }}</div>
+                                                @elseif($booking->vehicle)
+                                                    <div class="text-sm font-medium text-gray-900">{{ $booking->vehicle->name ?? 'Vehicle' }}</div>
+                                                    <div class="text-sm text-gray-500">Vehicle Booking</div>
+                                                @else
+                                                    <div class="text-sm font-medium text-gray-900">Booking #{{ $booking->id }}</div>
+                                                    <div class="text-sm text-gray-500">{{ $booking->booking_type ?? 'Booking' }}</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">{{ $booking->travel_date->format('M d, Y') }}</div>
-                                        <div class="text-sm text-gray-500">{{ $booking->package->duration }}</div>
+                                        @if($booking->package)
+                                            <div class="text-sm text-gray-500">{{ $booking->package->duration ?? 'N/A' }}</div>
+                                        @elseif($booking->vehicle && $booking->distance)
+                                            <div class="text-sm text-gray-500">{{ number_format($booking->distance, 2) }} km</div>
+                                        @else
+                                            <div class="text-sm text-gray-500">Vehicle Booking</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $booking->travelers }} {{ Str::plural('person', $booking->travelers) }}
