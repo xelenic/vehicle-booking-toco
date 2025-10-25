@@ -37,6 +37,48 @@ class AboutController extends Controller
                 ],
                 'team_members' => [
                     ['name' => 'Our Team', 'position' => 'Professional Guides', 'description' => 'Meet our passionate team of local experts']
+                ],
+                'team_members_with_images' => [
+                    [
+                        'name' => 'Rajesh Perera',
+                        'position' => 'Founder & CEO',
+                        'description' => 'A native of Kandy with over 15 years of experience in tourism, Rajesh founded Ceylon Mirissa to share his love for Sri Lanka\'s cultural heritage.',
+                        'image_url' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+                    ],
+                    [
+                        'name' => 'Priya Fernando',
+                        'position' => 'Head of Operations',
+                        'description' => 'Born in Mirissa, Priya ensures every detail of your journey is perfect. Her expertise in wildlife and marine conservation adds depth to our eco-tours.',
+                        'image_url' => 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+                    ],
+                    [
+                        'name' => 'Kumar Silva',
+                        'position' => 'Lead Guide',
+                        'description' => 'With extensive knowledge of Sri Lanka\'s ancient sites and hiking trails, Kumar brings history and adventure to life for our guests.',
+                        'image_url' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+                    ]
+                ],
+                'gallery_images_with_urls' => [
+                    [
+                        'url' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                        'alt' => 'Sri Lankan landscape'
+                    ]
+                ],
+                'vision' => 'To be the leading travel company that helps visitors discover the hidden gems of Sri Lanka while promoting sustainable tourism and supporting local communities.',
+                'mission' => 'To showcase the authentic beauty of Sri Lanka through carefully curated experiences that connect travelers with the island\'s rich culture, stunning landscapes, and warm people.',
+                'values' => [
+                    [
+                        'title' => 'Authenticity',
+                        'description' => 'We believe in showcasing the real Sri Lanka, not just tourist attractions.'
+                    ],
+                    [
+                        'title' => 'Sustainability',
+                        'description' => 'We promote responsible tourism that benefits local communities and preserves the environment.'
+                    ],
+                    [
+                        'title' => 'Excellence',
+                        'description' => 'We strive to provide exceptional service and unforgettable experiences for every guest.'
+                    ]
                 ]
             ];
         }

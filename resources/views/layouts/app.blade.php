@@ -195,6 +195,15 @@
             z-index: 9999 !important;
         }
 
+        .navbar .flex {
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .navbar .hidden.lg\\:flex {
+            flex-shrink: 0;
+        }
+
         .navbar.scrolled {
             background: #ffffff;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -264,39 +273,48 @@
             }
             
             .navbar {
-                height: 64px;
+                height: 56px;
             }
             
             .navbar .container {
-                height: 64px;
+                height: 56px;
             }
             
             .navbar .flex {
-                height: 64px;
+                height: 56px;
             }
             
             .logo-icon {
-                width: 40px;
-                height: 40px;
+                width: 32px;
+                height: 32px;
             }
             
             .logo-icon svg {
-                width: 20px;
-                height: 20px;
+                width: 16px;
+                height: 16px;
             }
             
             .navbar h1 {
-                font-size: 1.25rem;
+                font-size: 1rem;
             }
             
             .navbar p {
-                font-size: 0.75rem;
+                font-size: 0.625rem;
             }
         }
 
         @media (min-width: 641px) and (max-width: 1024px) {
             .mobile-menu {
                 width: 320px;
+            }
+            
+            /* Hide desktop nav on tablet and show mobile menu button */
+            .navbar .hidden.lg\\:flex {
+                display: none !important;
+            }
+            
+            .mobile-menu-btn {
+                display: block !important;
             }
         }
 
@@ -377,45 +395,45 @@
     <!-- Navigation -->
     <nav class="navbar fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between h-20 lg:h-20 md:h-16 sm:h-16">
+            <div class="flex items-center justify-between h-16 lg:h-16 md:h-14 sm:h-14">
                 <!-- Logo -->
-                <div class="flex items-center space-x-3">
-                    <div class="logo-icon w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center space-x-2">
+                    <div class="logo-icon w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 playfair">Ceylon Mirissa</h1>
-                        <p class="text-sm text-gray-600 font-medium">Discover Paradise</p>
+                        <h1 class="text-lg font-bold text-gray-900 playfair">Ceylon Mirissa</h1>
+                        <p class="text-xs text-gray-600 font-medium">Discover Paradise</p>
                     </div>
                 </div>
 
                 <!-- Desktop Navigation -->
-                <div class="hidden lg:flex items-center space-x-8">
-                    <a href="{{ route('home') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('home') ? 'text-blue-600' : '' }}">Home</a>
-                    <a href="{{ route('about') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('about') ? 'text-blue-600' : '' }}">About</a>
-                    <a href="{{ route('packages') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('packages') ? 'text-blue-600' : '' }}">Packages</a>
-                    <a href="{{ route('blog.index') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('blog.*') ? 'text-blue-600' : '' }}">Blog</a>
-                    <a href="{{ route('contact') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('contact') ? 'text-blue-600' : '' }}">Contact</a>
+                <div class="hidden lg:flex items-center space-x-6">
+                    <a href="{{ route('home') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('home') ? 'text-blue-600' : '' }}">Home</a>
+                    <a href="{{ route('about') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('about') ? 'text-blue-600' : '' }}">About</a>
+                    <a href="{{ route('packages') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('packages') ? 'text-blue-600' : '' }}">Packages</a>
+                    <a href="{{ route('blog.index') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('blog.*') ? 'text-blue-600' : '' }}">Blog</a>
+                    <a href="{{ route('contact') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('contact') ? 'text-blue-600' : '' }}">Contact</a>
 
                     <!-- Search Bar -->
                     <div class="relative search-container">
                         <div class="relative flex">
                             <input type="text" id="search-input" placeholder="Search packages, blogs..." 
-                                   class="w-64 px-4 py-2 pl-10 pr-12 text-sm border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                   class="w-48 px-3 py-1.5 pl-8 pr-10 text-sm border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
-                            <button type="button" id="search-clear" class="absolute inset-y-0 right-12 pr-3 flex items-center hidden">
+                            <button type="button" id="search-clear" class="absolute inset-y-0 right-10 pr-2 flex items-center hidden">
                                 <svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
-                            <button type="button" id="search-button" class="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-4 py-2 rounded-r-full transition-all duration-300 flex items-center">
+                            <button type="button" id="search-button" class="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-3 py-1.5 rounded-r-full transition-all duration-300 flex items-center">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -488,8 +506,8 @@
                         </div>
                     @else
                         <!-- Guest Navigation -->
-                        <a href="{{ route('login') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 {{ request()->routeIs('login') ? 'text-blue-600' : '' }}">Login</a>
-                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ripple">
+                        <a href="{{ route('login') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium text-sm transition-all duration-300 {{ request()->routeIs('login') ? 'text-blue-600' : '' }}">Login</a>
+                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ripple">
                             Book your adventure
                         </a>
                     @endauth
@@ -507,7 +525,7 @@
             <div class="mobile-menu-overlay lg:hidden"></div>
             
             <!-- Mobile Menu -->
-            <div class="mobile-menu fixed top-20 right-0 w-80 h-full shadow-2xl z-40 lg:hidden">
+            <div class="mobile-menu fixed top-16 lg:top-16 md:top-14 sm:top-14 right-0 w-80 h-full shadow-2xl z-40 lg:hidden">
                 <!-- Mobile Menu Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-900">Menu</h3>
@@ -666,10 +684,10 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="pt-20">
+    <main class="pt-16 lg:pt-16 md:pt-14 sm:pt-14">
         <!-- Success/Error Messages -->
         @if(session('success'))
-            <div class="fixed top-24 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 animate-slide-in-right" id="success-message">
+            <div class="fixed top-20 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 animate-slide-in-right" id="success-message">
                 <div class="flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -680,7 +698,7 @@
         @endif
 
         @if(session('error'))
-            <div class="fixed top-24 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 animate-slide-in-right" id="error-message">
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 animate-slide-in-right" id="error-message">
                 <div class="flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
