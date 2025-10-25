@@ -1339,6 +1339,20 @@
         }
     }
     
+    /* Reverse spin animation for loading */
+    @keyframes spin-reverse {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(-360deg);
+        }
+    }
+    
+    .animate-reverse {
+        animation: spin-reverse 1s linear infinite;
+    }
+    
     .google-marker-pickup,
     .google-marker-destination,
     .custom-marker-waypoint {
@@ -1709,8 +1723,25 @@
         // Show Route Details section
         document.getElementById('routeInfo').classList.remove('hidden');
         
-        // Calculate and display price
-        calculatePrice(pickupLocation.id, destinationLocation.id, leg.distance.value);
+        // Calculate and display price with error handling
+        if (leg && leg.distance && leg.distance.value) {
+            console.log('Calculating price with distance:', leg.distance.value);
+            
+            // Check if a vehicle is selected
+            const vehicleSelect = document.getElementById('vehicle');
+            const selectedVehicleId = vehicleSelect ? vehicleSelect.value : '';
+            
+            if (selectedVehicleId) {
+                // Vehicle is selected, calculate price
+                calculatePrice(pickupLocation.id, destinationLocation.id, leg.distance.value);
+            } else {
+                // No vehicle selected yet
+                console.log('No vehicle selected yet - price calculation will trigger when vehicle is selected');
+            }
+        } else {
+            console.error('Invalid distance data from route:', leg);
+            showRouteNotification('Route calculated but unable to get distance. Please try again.', 'warning');
+        }
         
         // Show success notification
         showRouteNotification(`${travelMode.name} route calculated successfully!`, 'success');
@@ -1751,6 +1782,20 @@
             distance: distanceInKm
         });
         
+        // Add timeout to fetch request
+        const timeoutId = setTimeout(() => {
+            console.error('Price calculation request timed out');
+            priceDisplay.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-yellow-600 mb-2">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600">Calculation is taking longer than expected</p>
+                    <p class="text-xs text-gray-500 mt-1">Please wait...</p>
+                </div>
+            `;
+        }, 10000); // 10 second timeout
+        
         fetch(`/vehicle-booking/calculate-price?${params}`, {
             method: 'GET',
             headers: {
@@ -1758,6 +1803,7 @@
             }
         })
         .then(response => {
+            clearTimeout(timeoutId);
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
             
@@ -1770,13 +1816,18 @@
         .then(data => {
             console.log('Price calculation response:', data);
             
-            if (data.success) {
-                displayPrice(data.data);
+            if (data && data.success) {
+                if (data.data) {
+                    displayPrice(data.data);
+                } else {
+                    throw new Error('Invalid response data');
+                }
             } else {
                 throw new Error(data.message || 'Failed to calculate price');
             }
         })
         .catch(error => {
+            clearTimeout(timeoutId);
             console.error('Price calculation error:', error);
             console.error('Error details:', {
                 message: error.message,
@@ -1791,7 +1842,10 @@
                     </div>
                     <p class="text-sm text-gray-600">Unable to calculate price</p>
                     <p class="text-xs text-gray-500 mt-1">Error: ${error.message}</p>
-                    <p class="text-xs text-gray-500 mt-1">Please try again</p>
+                    <button onclick="calculatePrice('${pickupLocationId}', '${destinationLocationId}', ${distanceInMeters})" 
+                        class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Retry
+                    </button>
                 </div>
             `;
         });
@@ -2153,20 +2207,32 @@
         const routeInfo = document.getElementById('routeInfo');
         routeInfo.classList.remove('hidden');
         
-        // Create loading overlay instead of replacing content
+        // Create improved loading overlay
         let loadingOverlay = document.getElementById('routeLoadingOverlay');
         if (!loadingOverlay) {
             loadingOverlay = document.createElement('div');
             loadingOverlay.id = 'routeLoadingOverlay';
-            loadingOverlay.className = 'absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg';
+            loadingOverlay.className = 'bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 p-8 rounded-xl flex items-center justify-center';
             loadingOverlay.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                    <span class="text-gray-600 font-medium">Calculating route...</span>
+                <div class="flex flex-col items-center space-y-4 animate-pulse">
+                    <div class="relative">
+                        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+                        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 absolute top-0 left-0 animate-reverse"></div>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-1">Calculating Route</h4>
+                        <p class="text-sm text-gray-600">Finding the best path for your journey...</p>
+                    </div>
+                    <div class="flex space-x-2 mt-2">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                    </div>
                 </div>
             `;
-            routeInfo.style.position = 'relative';
             routeInfo.appendChild(loadingOverlay);
+        } else {
+            loadingOverlay.classList.remove('hidden');
         }
     }
     
@@ -2174,7 +2240,7 @@
     function hideRouteLoading() {
         const loadingOverlay = document.getElementById('routeLoadingOverlay');
         if (loadingOverlay) {
-            loadingOverlay.remove();
+            loadingOverlay.classList.add('hidden');
         }
     }
     
@@ -2322,8 +2388,20 @@
                 // Recalculate price if route is already displayed
                 const pickupLocationId = document.getElementById('pickupLocation').value;
                 const destinationLocationId = document.getElementById('destinationLocation').value;
-                if (pickupLocationId && destinationLocationId && window.lastCalculatedDistance) {
-                    calculatePrice(pickupLocationId, destinationLocationId, window.lastCalculatedDistance);
+                
+                // Check if route is displayed by checking if routeInfo is visible
+                const routeInfo = document.getElementById('routeInfo');
+                const isRouteDisplayed = routeInfo && !routeInfo.classList.contains('hidden');
+                
+                if (pickupLocationId && destinationLocationId) {
+                    if (window.lastCalculatedDistance && isRouteDisplayed) {
+                        // Calculate price using stored distance
+                        console.log('Recalculating price after vehicle change');
+                        calculatePrice(pickupLocationId, destinationLocationId, window.lastCalculatedDistance);
+                    } else {
+                        // Check if there's a route info but not calculated yet
+                        console.log('Waiting for route distance to be calculated');
+                    }
                 }
             } else {
                 paxInput.max = 20;
